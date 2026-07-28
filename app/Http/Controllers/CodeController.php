@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProgrammingLanguageEnum;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreCodeRequest;
 use App\Models\Code;
 
 class CodeController extends Controller
@@ -13,13 +13,14 @@ class CodeController extends Controller
         return view('codes.create'); // Form to submit code
     }
 
-    public function store(Request $request)
+    public function store(StoreCodeRequest $request)
     {
         $code = new Code();
-        $code->content = $request->input('content');
-        $code->visibility = $request->input('visibility', 'public');
+        $code->content = $request->validated('content');
+        $code->visibility = $request->validated('visibility') ?? 'public';
         $code->prog_lang = ProgrammingLanguageEnum::TXT;
-        $code->expiration = $request->input('expiration') ? now()->addMinutes($request->input('expiration')) : null;
+        $expiration = $request->validated('expiration');
+        $code->expiration = $expiration ? now()->addMinutes($expiration) : null;
         $code->save();
         return redirect()->route('code.show', $code->id);
     }
