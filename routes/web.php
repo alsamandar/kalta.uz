@@ -36,14 +36,14 @@ Route::get('/test', function(){
     return view('test');
 });
 
-Route::post('kaltas/make', [ShortController::class, 'make'])->name('shorts.make');
+Route::post('kaltas/make', [ShortController::class, 'make'])->middleware('throttle:20,1')->name('shorts.make');
 
 Route::resource('bio', BioController::class);
 
 Route::get('{kalta}', [KaltaController::class, 'show'])->name('kaltas.show');
 Route::resource('kaltas', KaltaController::class)->except('show');
-Route::resource('files', FileController::class);
-Route::resource('codes', CodeController::class);
+Route::resource('files', FileController::class)->middleware('throttle:20,1');
+Route::resource('codes', CodeController::class)->middleware('throttle:20,1');
 
 
 require_once __DIR__.'/auth.php';
