@@ -1,0 +1,15 @@
+{
+  "name": "Kalta.uz",
+  "short_name": "Kalta",
+  "description": "Short links, QR codes, file sharing and more",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffaf3",
+  "theme_color": "#ff7500",
+  "icons": [
+    { "src": "/img/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/img/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/img/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
