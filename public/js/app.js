@@ -486,6 +486,7 @@
   const tune = $('[data-music]');
   const musicBtn = $('[data-music-btn]');
   const setMusic = (on) => { if (musicBtn) musicBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); };
+  if (tune) tune.volume = 0.6;
   if (tune && musicBtn) {
     musicBtn.addEventListener('click', () => {
       if (tune.paused) tune.play().then(() => setMusic(true)).catch(() => {});

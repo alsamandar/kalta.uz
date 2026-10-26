@@ -94,7 +94,8 @@ lang/                  uz.json, ru.json (+ validation/auth/passwords messages)
   (`data-resilient`) submit with `fetch` so a network failure never wipes what was typed: they check the connection
   first (`public/up.txt`), retry on a fresh connection and refresh an expired CSRF token. File inputs marked
   `data-shrink` are downscaled in the browser before upload (a 4 MB phone photo becomes ~400 KB).
-* Private pages (`/created/*`, `/i/*`, `/invitations/*`, snippets, bio pages) are `noindex`.
+* Only link-in-bio pages are indexable (`<x-app-layout :indexable="true">`, needs `SEO_INDEX=true`) and only they are
+  listed in `sitemap.xml`; every other page, file download and redirect is `noindex`.
 * **Wedding invitations, the hosts' side** (`/invitations/{secret}/manage`; the secret in the address is the only key):
   the dashboard shows people coming and the sent → opened → replied progress, a searchable guest list with filters
   (not sent / waiting / coming / declined) and per guest Telegram, WhatsApp (straight to the chat when a phone number is
@@ -120,5 +121,12 @@ lang/                  uz.json, ru.json (+ validation/auth/passwords messages)
   Repeated per-guest icons use an inline SVG sprite (`<x-iu>`, `invitations/_sprite`) to keep a 300-guest page small.
   E-mail only works when `MAIL_*` is configured; the page offers it only when a guest has an address, and gives up
   after three failed tries instead of waiting for every guest.
+* **The guest's invitation page** (`invitations/show`, `public/css/invitation.css`): an envelope with a wax seal opens it
+  (and starts the music), then one screen per block: greeting, the couple under an arch, a month calendar, a countdown,
+  the venue, the hosts' message and the reply card. Line-art florals are `invitations/_flora`, `_sprig`, `_ornament`,
+  `_rings`. `?name=Aziz` on the shared link greets that person by name (stripped of tags, max 60 characters). Hosts get
+  "Remind via Telegram / WhatsApp" for guests who were sent the link but have not replied.
+  Background music: Mendelssohn's *Wedding March*, European Archive recording, public domain (Wikimedia Commons),
+  `public/audio/wedding-march.mp3`; replace the file to change it.
 * Executables and scripts (`.exe`, `.php`, `.sh`, ...) cannot be uploaded; files are only ever served as downloads.
 * Fonts: Inter and Cormorant Garamond (SIL OFL, licenses in `public/fonts` and `resources/fonts`), highlight.js (BSD-3, `public/vendor/hljs`).
