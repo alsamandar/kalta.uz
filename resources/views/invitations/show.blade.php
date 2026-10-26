@@ -39,6 +39,10 @@
     <div class="invite-theme">
         @if ($showSeal)
             <div class="seal-gate" data-seal>
+                <div class="gate-top">
+                    <p class="gate-lab">{{ __('Wedding invitation') }}</p>
+                    @if ($addressee)<p class="gate-name">{{ __('Dear :name,', ['name' => $addressee]) }}</p>@endif
+                </div>
                 <div class="env">
                     <div class="env-back"></div>
                     <div class="env-flap"></div>
@@ -49,6 +53,8 @@
         @endif
 
         <div class="petals" aria-hidden="true">@for ($i = 0; $i < 18; $i++)<i style="--x:{{ ($i * 37 + 11) % 100 }}%;--d:{{ 9 + ($i * 7) % 9 }}s;--s:{{ 0.55 + ($i % 4) * 0.2 }};--w:{{ -($i * 1.9) }}s"></i>@endfor</div>
+
+        <div class="twinkles" aria-hidden="true">@for ($i = 0; $i < 22; $i++)<i style="left:{{ ($i * 53 + 7) % 100 }}%;top:{{ ($i * 29 + 13) % 100 }}%;--d:{{ 2.4 + ($i % 5) * 0.7 }}s;--w:{{ -($i * 0.6) }}s;--s:{{ 0.5 + ($i % 3) * 0.3 }}"></i>@endfor</div>
 
         <main class="invite">
             {{-- 1. Greeting --}}
@@ -61,8 +67,9 @@
                 @else
                     <p class="lab rv">{{ __('Greetings') }}</p>
                 @endif
-                <h1 class="script big rv">{{ __('Invitation') }}</h1>
-                <div class="orn rv" aria-hidden="true"><x-i name="heart" :size="14" /></div>
+                <div class="rv">@include('invitations._rings')</div>
+                <h1 class="script big gold-text rv">{{ __('Invitation') }}</h1>
+                <div class="rv">@include('invitations._ornament')</div>
                 <p class="txt rv">{{ __('We kindly invite you to our wedding') }}</p>
                 <a class="scroll-cue" href="#couple"><span>{{ __('Scroll down') }}</span><b aria-hidden="true"></b></a>
             </section>
@@ -74,13 +81,15 @@
                     <svg class="arch-roses" viewBox="0 0 120 50" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M60 8c-10 0-16 8-14 16 2 9 14 12 21 6 6-6 4-16-4-18-6-1-10 4-8 8 2 3 6 3 7 0"/><path d="M34 20c-7 0-11 6-9 11 2 6 10 7 14 3 4-4 2-10-3-11"/><path d="M86 20c7 0 11 6 9 11-2 6-10 7-14 3-4-4-2-10 3-11"/><path d="M22 30C14 24 6 26 2 32c8 2 14 2 20-2zM98 30c8-6 16-4 20 2-8 2-14 2-20-2zM44 38c-6 4-8 8-6 12 5-2 7-6 6-12zM76 38c6 4 8 8 6 12-5-2-7-6-6-12z"/></g></svg>
                     <div class="arch-in">
                         <p class="lab line">{{ __('Wedding ceremony') }}</p>
-                        <h2 class="script name-a">{{ $invitation->groom_name }}</h2>
-                        <div class="orn" aria-hidden="true"><x-i name="heart" :size="12" /></div>
+                        <h2 class="script name-a gold-text">{{ $invitation->groom_name }}</h2>
+                        <p class="amp" aria-hidden="true">&amp;</p>
                         <h2 class="script name-b">{{ $invitation->bride_name }}</h2>
                         <p class="script small">{{ __('Two hearts united — the greatest happiness') }}</p>
                     </div>
                 </div>
             </section>
+
+            <div class="sl-sep">@include('invitations._ornament')</div>
 
             {{-- 3. Date --}}
             <section class="sl">
@@ -108,7 +117,7 @@
                 <section class="sl">
                     @include('invitations._flora', ['class' => 'flora flora-tr thin'])
                     @include('invitations._flora', ['class' => 'flora flora-bl thin'])
-                    <h2 class="script mid rv">{{ __('Until the wedding') }}</h2>
+                    <h2 class="script mid gold-text rv">{{ __('Until the wedding') }}</h2>
                     <p class="txt rv">{{ __('We look forward to seeing you') }}</p>
                     <div class="countdown rv" data-countdown="{{ $local->toIso8601String() }}" role="timer" aria-label="{{ __('Time until the wedding') }}">
                         <div><b data-unit="d">0</b><span>{{ __('days') }}</span></div>
@@ -118,6 +127,8 @@
                     </div>
                 </section>
             @endif
+
+            <div class="sl-sep">@include('invitations._ornament')</div>
 
             {{-- 5. Venue --}}
             <section class="sl">
@@ -144,8 +155,8 @@
                 @include('invitations._flora', ['class' => 'flora flora-br'])
                 <p class="lab rv">{{ __('Sincere wishes') }}</p>
                 <p class="txt rv">{{ __('With respect:') }}</p>
-                <h2 class="script mid sage rv">{{ $invitation->coupleNames() }}</h2>
-                <div class="orn rv" aria-hidden="true"><x-i name="heart" :size="12" /></div>
+                <h2 class="script mid gold-text rv">{{ $invitation->coupleNames() }}</h2>
+                <div class="rv">@include('invitations._ornament')</div>
                 <p class="txt wide rv">{{ $invitation->message ?: __('By coming to our wedding you do us a great honour. Your presence is the most precious gift of this evening.') }}</p>
                 <p class="script tiny rv">{{ __('Your presence will bring us great joy') }}</p>
             </section>
