@@ -121,10 +121,15 @@ lang/                  uz.json, ru.json (+ validation/auth/passwords messages)
   Repeated per-guest icons use an inline SVG sprite (`<x-iu>`, `invitations/_sprite`) to keep a 300-guest page small.
   E-mail only works when `MAIL_*` is configured; the page offers it only when a guest has an address, and gives up
   after three failed tries instead of waiting for every guest.
-* **The guest's invitation page** (`invitations/show`, `public/css/invitation.css`): an envelope with a wax seal opens it
-  (and starts the music), then one screen per block: greeting, the couple under an arch, a month calendar, a countdown,
-  the venue, the hosts' message and the reply card. Line-art florals are `invitations/_flora`, `_sprig`, `_ornament`,
-  `_rings`. `?name=Aziz` on the shared link greets that person by name (stripped of tags, max 60 characters). Hosts get
+* **The guest's invitation page** (`invitations/show`, `public/css/invitation.css`): a 3D envelope; tapping the wax seal
+  cracks it in two, lifts the flap and slides the card out until it fills the screen (with small sounds made by Web
+  Audio, no files), and starts the music. Then one screen per block: greeting, the couple under an arch, a month
+  calendar, a countdown, the venue, the hosts' message and the reply card. Motion is CSS with a little JS in `app.js`:
+  line art draws itself (`.draw`), script headings are written in (`.ink`), blocks rise into focus (`.rv`), the rings
+  swing together in 3D, the calendar page tips down, countdown digits roll, the photo opens like a window, florals and
+  the photo get scroll depth (`--p`), and a gold thread on the left follows the reader (`--sp`). Everything is static
+  with `prefers-reduced-motion`. Line-art florals are `invitations/_flora`, `_sprig`, `_ornament`, `_rings`.
+  `?name=Aziz` on the shared link greets that person by name (stripped of tags, max 60 characters). Hosts get
   "Remind via Telegram / WhatsApp" for guests who were sent the link but have not replied.
   Background music: Mendelssohn's *Wedding March*, European Archive recording, public domain (Wikimedia Commons),
   `public/audio/wedding-march.mp3`; replace the file to change it.

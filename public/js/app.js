@@ -482,49 +482,157 @@
     });
   }
 
-  /* ---------- Invitation page: opening seal, reveal on scroll, countdown and RSVP form ---------- */
+  /* ---------- Invitation page: opening envelope, reveal on scroll, scroll depth, countdown and RSVP form ---------- */
   const tune = $('[data-music]');
   const musicBtn = $('[data-music-btn]');
+  const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
   const setMusic = (on) => { if (musicBtn) musicBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); };
   if (tune) tune.volume = 0.6;
   if (tune && musicBtn) {
     musicBtn.addEventListener('click', () => {
-      if (tune.paused) tune.play().then(() => setMusic(true)).catch(() => {});
+      if (tune.paused) { tune.volume = 0.6; tune.play().then(() => setMusic(true)).catch(() => {}); }
       else { tune.pause(); setMusic(false); }
     });
   }
+
+  // Short sounds for the opening, made on the spot: the wax cracking, the card sliding out, a little bell
+  const openingSounds = () => {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      const ac = new AC();
+      const t = ac.currentTime;
+      const out = ac.createGain();
+      out.gain.value = 0.45;
+      out.connect(ac.destination);
+      const noise = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const data = noise.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      const hiss = (at, length, type, from, to, level) => {
+        const src = ac.createBufferSource();
+        const filter = ac.createBiquadFilter();
+        const gain = ac.createGain();
+        src.buffer = noise;
+        filter.type = type;
+        filter.frequency.setValueAtTime(from, t + at);
+        filter.frequency.exponentialRampToValueAtTime(to, t + at + length);
+        gain.gain.setValueAtTime(0.0001, t + at);
+        gain.gain.exponentialRampToValueAtTime(level, t + at + Math.min(0.06, length / 3));
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + at + length);
+        src.connect(filter).connect(gain).connect(out);
+        src.start(t + at);
+        src.stop(t + at + length + 0.05);
+      };
+      hiss(0, 0.09, 'bandpass', 2600, 1800, 0.9); // crack
+      hiss(0.3, 0.5, 'bandpass', 900, 2200, 0.12); // flap
+      hiss(0.9, 0.6, 'lowpass', 1200, 4200, 0.18); // card slides out
+      [[1318.5, 0.2], [1975.5, 0.09], [2637, 0.05], [3951, 0.025]].forEach(([freq, level]) => {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, t + 1.55);
+        gain.gain.exponentialRampToValueAtTime(level, t + 1.56);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 3.6);
+        osc.connect(gain).connect(out);
+        osc.start(t + 1.55);
+        osc.stop(t + 3.7);
+      });
+      setTimeout(() => ac.close(), 4500);
+    } catch (e) { /* no sound is fine */ }
+  };
+
+  // Things slide, write and draw themselves in as they come into view
+  const reveal = $$('.rv, .draw');
+  let startReveal = () => {};
+  if (reveal.length && 'IntersectionObserver' in window && motion) {
+    document.documentElement.classList.add('js-rv', 'js-motion');
+    $$('.draw').forEach((svg) => $$('path', svg).forEach((path, i) => {
+      path.style.setProperty('--len', Math.ceil(path.getTotalLength() + 2));
+      path.style.setProperty('--k', i);
+    }));
+    startReveal = () => {
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      }), { threshold: 0.01, rootMargin: '0px 0px -5% 0px' });
+      reveal.forEach((node) => io.observe(node));
+    };
+  }
+
   const seal = $('[data-seal]');
   if (seal) {
     const root = document.documentElement;
+    const env = $('.env', seal);
     root.classList.add('seal-open');
+    seal.addEventListener('pointermove', (e) => {
+      env.style.setProperty('--tx', (e.clientX / innerWidth - 0.5).toFixed(3));
+      env.style.setProperty('--ty', (e.clientY / innerHeight - 0.5).toFixed(3));
+    });
     const open = () => {
       seal.classList.add('is-opening');
-      setTimeout(() => { seal.classList.add('is-open'); root.classList.remove('seal-open'); }, 800);
-      setTimeout(() => seal.remove(), 2200);
-      if (tune) tune.play().then(() => setMusic(true)).catch(() => {});
+      if (motion) openingSounds();
+      if (tune) {
+        // starts inside the tap (phones allow sound only then), softly under the fanfare, then swells to full
+        tune.volume = 0.3;
+        tune.play().then(() => setMusic(true)).catch(() => {});
+        setTimeout(() => {
+          const swell = setInterval(() => {
+            tune.volume = Math.min(0.6, tune.volume + 0.03);
+            if (tune.volume >= 0.6) clearInterval(swell);
+          }, 100);
+        }, motion ? 600 : 0);
+      }
+      setTimeout(startReveal, motion ? 1900 : 0);
+      setTimeout(() => { seal.classList.add('is-open'); root.classList.remove('seal-open'); }, motion ? 2250 : 0);
+      setTimeout(() => seal.remove(), motion ? 3000 : 700);
     };
     $('.seal', seal).addEventListener('click', open);
+  } else {
+    startReveal();
   }
-  const reveal = $$('.rv');
-  if (reveal.length) {
-    if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      document.documentElement.classList.add('js-rv');
-      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-      }), { threshold: 0.15, rootMargin: '0px 0px -6% 0px' });
-      reveal.forEach((node) => io.observe(node));
-    }
+
+  // Depth while scrolling: each section learns how far it is from the middle of the screen (--p),
+  // the gold thread how far down the page the guest has read (--sp)
+  const slides = $$('.sl');
+  const thread = $('.thread');
+  if (slides.length && motion) {
+    let queued = false;
+    const depth = () => {
+      queued = false;
+      const vh = innerHeight;
+      slides.forEach((s) => {
+        const r = s.getBoundingClientRect();
+        if (r.bottom < -vh || r.top > vh * 2) return;
+        const p = Math.max(-1.5, Math.min(1.5, (r.top + r.height / 2 - vh / 2) / vh));
+        s.style.setProperty('--p', p.toFixed(3));
+      });
+      if (thread) {
+        const max = document.documentElement.scrollHeight - vh;
+        thread.style.setProperty('--sp', max > 0 ? (scrollY / max).toFixed(4) : 0);
+      }
+    };
+    const queue = () => { if (!queued) { queued = true; requestAnimationFrame(depth); } };
+    addEventListener('scroll', queue, { passive: true });
+    addEventListener('resize', queue);
+    depth();
   }
+
   const countdown = $('[data-countdown]');
   if (countdown) {
     const target = new Date(countdown.dataset.countdown).getTime();
     const unit = (name) => $('[data-unit="' + name + '"]', countdown);
+    const show = (node, value) => {
+      if (!node || node.textContent === String(value)) return;
+      node.textContent = value;
+      node.classList.remove('tick');
+      void node.offsetWidth; // restart the roll
+      node.classList.add('tick');
+    };
     const tick = () => {
       const left = Math.max(0, Math.floor((target - Date.now()) / 1000));
-      unit('d').textContent = Math.floor(left / 86400);
-      unit('h').textContent = Math.floor((left % 86400) / 3600);
-      unit('m').textContent = Math.floor((left % 3600) / 60);
-      if (unit('s')) unit('s').textContent = left % 60;
+      show(unit('d'), Math.floor(left / 86400));
+      show(unit('h'), Math.floor((left % 86400) / 3600));
+      show(unit('m'), Math.floor((left % 3600) / 60));
+      show(unit('s'), left % 60);
     };
     tick();
     setInterval(tick, 1000);
