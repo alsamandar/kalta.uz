@@ -62,6 +62,7 @@
             'retrying' => __('Connection problem. Trying again…'),
             'stillOffline' => __('We could not reach the server. Your details are still on this page: check your connection and tap the button again.'),
             'linkPrompt' => __('Link address (empty to remove the link)'),
+            'snipSaved' => __(':count characters shorter'),
             'tools' => [
                 'bold' => __('Bold'), 'italic' => __('Italic'), 'heading' => __('Heading'), 'subheading' => __('Subheading'),
                 'quote' => __('Quote'), 'list' => __('List'), 'link' => __('Link'), 'image' => __('Add a picture'),

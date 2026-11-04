@@ -359,6 +359,7 @@ button { font: inherit; }
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow-2);
   animation: rise 0.3s ease both;
 }
+.result > * { min-width: 0; } /* the long link must not push the copy button out of the card */
 @media (min-width: 640px) { .result { grid-template-columns: 1fr 172px; align-items: center; padding: 24px; } }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .result-label { margin: 0 0 6px; color: var(--muted); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }

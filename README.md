@@ -82,7 +82,7 @@ app/Http/Controllers   one controller per tool (Short, File, Qr, Code, Bio, Invi
 app/Http/Middleware    SetLocale, SecurityHeaders, NoIndex, CloudflareClientIp
 app/Helpers/functions.php   lroute(), qr_svg(), normalize_url(), randomString(), upload_limit_kb() ...
 resources/views        layouts/app.blade.php is the page shell (SEO head, JSON-LD); one folder per tool
-public/css/app.css     the whole design system (light/dark); invitation.css (guest page) and manage.css (hosts' pages) only where used
+public/css/app.css     the whole design system (light/dark); home.css (the cut-tape hero, the tool shelf), post.css, invitation.css (guest page) and manage.css (hosts' pages) only where used
 public/js/app.js       progressive enhancement; every page also works without it
 public/js/manage.js    hosts' pages only: guest search/filters, "sent" marks with undo, new-reply banner, date hint
 app/Support            Submission, Images, Icons, GuestList (paste parser + dedupe), Ics (calendar file), Visitors (who is a person), PreviewImage (link-preview picture)

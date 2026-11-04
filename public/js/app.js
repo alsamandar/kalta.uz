@@ -243,6 +243,48 @@
     renderHistory();
   }
 
+  /* ---------- Home: the scissors cut a long address down to a short one ---------- */
+  const snip = $('[data-snip]');
+  if (snip) {
+    const head = $('[data-snip-head]', snip);
+    const tail = $('[data-snip-tail]', snip);
+    const short = $('[data-snip-short]', snip);
+    const saved = $('[data-snip-saved]', snip);
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const count = () => {
+      const less = (head.textContent + tail.textContent).length - short.textContent.length;
+      saved.textContent = less > 0 ? t('snipSaved').replace(':count', less) : '';
+    };
+    let timer;
+    const cut = () => {
+      clearTimeout(timer);
+      snip.classList.remove('is-cut', 'is-done');
+      count();
+      if (still) { snip.classList.add('is-done'); return; }
+      void snip.offsetWidth; // restart the animation
+      snip.classList.add('is-cut');
+      timer = setTimeout(() => { snip.classList.remove('is-cut'); snip.classList.add('is-done'); }, 2000);
+    };
+    // the visitor's own link: the address up to the first slash stays, the rest is cut off
+    document.addEventListener('kalta:shortened', (event) => {
+      const { long, url } = event.detail || {};
+      if (!long || !url) return;
+      const match = String(long).match(/^(https?:\/\/[^/?#]+\/?)(.*)$/i);
+      head.textContent = match ? match[1] : long;
+      tail.textContent = (match && match[2]) || '…';
+      short.textContent = String(url).replace(/^https?:\/\//, '');
+      cut();
+    });
+    if ('IntersectionObserver' in window) {
+      const seen = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) { seen.disconnect(); setTimeout(cut, 650); }
+      }, { threshold: 0.6 });
+      seen.observe(snip);
+    } else {
+      cut();
+    }
+  }
+
   /* ---------- Link shortener ---------- */
   const shortener = $('[data-shortener]');
   if (shortener) {
@@ -275,7 +317,9 @@
       if (navigator.share) share.hidden = false;
       resultBox.replaceChildren(node);
       node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      document.dispatchEvent(new CustomEvent('kalta:shortened', { detail: { long: data.long_url, url: data.url } }));
     }
+
 
     shortener.addEventListener('submit', async (event) => {
       event.preventDefault();

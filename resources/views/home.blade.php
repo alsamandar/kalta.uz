@@ -3,29 +3,21 @@
     $maxMb = max(1, round(upload_limit_kb() / 1024));
 
     $tools = [
-        ['link', __('Shorten a link'), __('Turn any long URL into a short, tidy link that is easy to share and type.'), __('Shorten now'), lroute('home') . '#shorten'],
-        ['upload', __('Share a file'), __('Upload a file up to :mb MB and get a download link. Send it in a messenger or print it as a QR code.', ['mb' => $maxMb]), __('Upload a file'), lroute('files.create')],
-        ['qr', __('QR code generator'), __('Create a QR code for a link, text or phone number and download it as PNG or SVG.'), __('Make a QR code'), lroute('qr.create')],
-        ['code', __('Text & code snippets'), __('Paste text or code, choose when it expires and share it with a short link. Syntax highlighting included.'), __('Share text'), lroute('codes.create')],
-        ['user', __('Link in bio'), __('Put all your links — Instagram, Telegram, X, GitHub — on one beautiful page with a single address.'), __('Create my page'), lroute('bio.create')],
-        ['file-text', __('Write a post'), __('Publish an article with pictures in a minute, like Telegraph. No account needed; links show a preview in chats.'), __('Write a post'), lroute('posts.create')],
-        ['heart', __('Wedding invitation'), __('Design an online invitation, send every guest a personal link and see who is coming.'), __('Create an invitation'), lroute('invitations.create')],
+        ['file', __('Share a file'), __('Up to :mb MB. Only people with the link can download it.', ['mb' => $maxMb]), lroute('files.create')],
+        ['qr', __('QR code generator'), __('For a poster, a menu or a business card.'), lroute('qr.create')],
+        ['bio', __('Link in bio'), __('Instagram, Telegram, your shop: one address for your profile.'), lroute('bio.create')],
+        ['post', __('Write a post'), __('Like Telegraph: a title, a story, pictures. No account.'), lroute('posts.create')],
+        ['code', __('Text & code snippets'), __('Paste it, pick when it disappears, send the link.'), lroute('codes.create')],
+        ['invite', __('Wedding invitation'), __('A personal link for every guest, and you see who is coming.'), lroute('invitations.create')],
     ];
 
-    $steps = [
-        [__('Paste or upload'), __('Paste a link, drop a file or write some text.')],
-        [__('Get your short link'), __('We create a short address on kalta.uz and a QR code for it.')],
-        [__('Share it anywhere'), __('Send it in messengers, put it on posters or in your profile.')],
-    ];
-
-    $features = [
-        ['zap', __('Fast and simple'), __('No forms to fill in and no waiting — your link is ready in about a second.')],
-        ['lock', __('No sign-up'), __('Everything works without an account. Create one only to manage your links.')],
-        ['qr', __('QR code with every link'), __('Every short link comes with a QR code you can download as PNG or SVG.')],
-        ['smartphone', __('Made for phones'), __('Designed for small screens first, so it feels natural on your phone.')],
-        ['globe', __('Three languages'), __('Use Kalta.uz in Uzbek, Russian or English.')],
-        ['shield', __('Files stay safe'), __('Uploaded files are only offered as downloads and are never run on our server.')],
-    ];
+    $promises = array_filter([
+        __('No sign-up. An account is only for managing your links.'),
+        __('Short links do not expire.'),
+        __('Files are private: only people with the link can open them.'),
+        __('Uzbek, Russian and English.'),
+        ! empty($since) ? __('Working since :year.', ['year' => $since]) : null,
+    ]);
 
     $faq = [
         [__('Is Kalta.uz free?'), __('Yes. Shortening links, creating QR codes and sharing files or text is free and does not require an account.')],
@@ -63,15 +55,37 @@
     :alternates="true"
     :jsonld="$jsonld">
 
-    <section class="hero" id="shorten">
+    @push('head')
+        <link rel="stylesheet" href="{{ asset_v('css/home.css') }}">
+    @endpush
+
+    <section class="home-hero" id="shorten">
         <div class="container">
-            <p class="eyebrow"><x-i name="zap" :size="16" />{{ __('Free · No sign-up · Instant') }}</p>
+            <p class="dict"><b lang="uz">kalta</b> <i>{{ __('Uzbek, adj.') }}</i> {{ __('short, not long') }}</p>
             <h1>
-                <span class="h1-line">{{ __('Shorten links.') }}</span>
-                <span class="h1-line">{{ __('Share files.') }}</span>
-                <span class="h1-line"><span class="mark">{{ __('Make QR codes.') }}</span></span>
+                <span class="h1-big">{{ __('Long story') }} <em>{{ __('short.') }}</em></span>
+                <span class="h1-sub">{{ __('Shorten links, share files and text, make QR codes. Free, in a second.') }}</span>
             </h1>
-            <p class="lead">{{ __('Kalta.uz is a free toolbox for the web. Paste a long link and get a short one in a second — no account needed.') }}</p>
+
+            {{-- a paper tape: the scissors from the logo cut a long address down to a short one; replayed with the visitor's own link --}}
+            <div class="snip" data-snip aria-hidden="true">
+                <div class="snip-tape">
+                    <span class="snip-keep">
+                        <span class="snip-long" data-snip-head>https://www.example.com/</span>
+                        <span class="snip-short" data-snip-short>kalta.uz/Ns7Kp</span>
+                    </span>
+                    <span class="snip-cut">
+                        <svg class="snip-scissors" viewBox="0 0 32 32" width="36" height="36">
+                            <g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                                <g class="blade blade-a"><circle cx="9.5" cy="10" r="3.3"/><path d="M12.3 11.8L25.5 22.6"/></g>
+                                <g class="blade blade-b"><circle cx="9.5" cy="22" r="3.3"/><path d="M12.3 20.2L25.5 9.4"/></g>
+                            </g>
+                        </svg>
+                    </span>
+                    <span class="snip-tail" data-snip-tail>katalog/kuz-2026/chegirmalar?utm_source=telegram&amp;utm_medium=kanal&amp;utm_campaign=noyabr&amp;ref=post_1842</span>
+                    <span class="snip-saved" data-snip-saved></span>
+                </div>
+            </div>
 
             <form class="shortener" method="POST" action="{{ lroute('shorts.make') }}" data-shortener novalidate>
                 @csrf
@@ -82,7 +96,7 @@
                     <input id="url" name="url" type="text" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
                         placeholder="{{ __('Paste your long link here…') }}" value="{{ old('url') }}" required
                         @if ($errors->has('url')) aria-invalid="true" aria-describedby="url-error" @endif>
-                    <button type="submit" class="btn btn-primary btn-lg"><span data-label>{{ __('Shorten') }}</span></button>
+                    <button type="submit" class="btn btn-primary btn-lg"><x-i name="scissors" :size="20" /><span data-label>{{ __('Shorten') }}</span></button>
                 </div>
                 <p class="field-error" id="url-error" data-error role="alert" @unless ($errors->has('url')) hidden @endunless>
                     @if ($errors->has('url')) <x-i name="alert" :size="18" />{{ $errors->first('url') }} @endif
@@ -103,65 +117,65 @@
         </div>
     </section>
 
-    <section class="section" aria-labelledby="tools-title">
+    <div class="cutline" aria-hidden="true"><x-i name="scissors" :size="18" /></div>
+
+    <section class="home-block" aria-labelledby="tools-title">
         <div class="container">
-            <div class="section-head">
-                <h2 id="tools-title">{{ __('Everything you need in one place') }}</h2>
-                <p>{{ __('Pick a tool — each one gives you a short link you can share anywhere.') }}</p>
-            </div>
-            <div class="tools">
-                @foreach ($tools as [$icon, $name, $text, $cta, $href])
-                    <article class="tool-card">
-                        <span class="tool-icon"><x-i :name="$icon" :size="24" /></span>
-                        <h3>{{ $name }}</h3>
-                        <p>{{ $text }}</p>
-                        <a class="more" href="{{ $href }}">{{ $cta }} <x-i name="arrow-right" :size="18" /></a>
-                    </article>
+            <h2 class="home-title" id="tools-title">{{ __('More than links') }}</h2>
+            <div class="shelf">
+                @foreach ($tools as [$kind, $name, $text, $href])
+                    <a class="shelf-item shelf-{{ $kind }}" href="{{ $href }}">
+                        <span class="mini mini-{{ $kind }}" aria-hidden="true">
+                            @switch($kind)
+                                @case('file')
+                                    <span class="mini-file"><span class="mini-ext">PDF</span><span><b>hisobot-oktyabr.pdf</b><small>2.4 MB</small></span></span>
+                                    <span class="mini-bar"><span></span></span>
+                                    @break
+                                @case('qr')
+                                    <span class="mini-qr">{!! qr_svg('https://kalta.uz', 'QR') !!}</span>
+                                    @break
+                                @case('bio')
+                                    <span class="mini-phone"><span class="mini-avatar"></span><span class="mini-name"></span><span class="mini-pill"></span><span class="mini-pill"></span><span class="mini-pill"></span></span>
+                                    @break
+                                @case('post')
+                                    <span class="mini-paper"><span class="mini-h"></span><span class="mini-l"></span><span class="mini-l"></span><span class="mini-img"></span><span class="mini-l short"></span></span>
+                                    @break
+                                @case('code')
+                                    <span class="mini-code"><i class="k">const</i> <i class="t">link</i> = <i class="s">'kalta.uz/Ns7Kp'</i>;<br><i class="c">// {{ __('expires in 1 day') }}</i></span>
+                                    @break
+                                @case('invite')
+                                    <span class="mini-card"><span class="mini-amp">A <i>&amp;</i> M</span><span class="mini-date">19 · 11</span></span>
+                                    @break
+                            @endswitch
+                        </span>
+                        <span class="shelf-text">
+                            <span class="shelf-name">{{ $name }} <x-i name="arrow-right" :size="18" /></span>
+                            <span class="shelf-desc">{{ $text }}</span>
+                        </span>
+                    </a>
                 @endforeach
             </div>
         </div>
     </section>
 
-    <section class="section alt" aria-labelledby="how-title">
+    <section class="home-block promises-block" aria-labelledby="promises-title">
         <div class="container">
-            <div class="section-head">
-                <h2 id="how-title">{{ __('How it works') }}</h2>
-                <p>{{ __('Three steps, about ten seconds.') }}</p>
-            </div>
-            <ol class="steps" style="list-style: none; padding: 0; margin: 0;">
-                @foreach ($steps as [$name, $text])
-                    <li class="step">
-                        <h3>{{ $name }}</h3>
-                        <p>{{ $text }}</p>
-                    </li>
-                @endforeach
-            </ol>
-        </div>
-    </section>
-
-    <section class="section" aria-labelledby="why-title">
-        <div class="container">
-            <div class="section-head">
-                <h2 id="why-title">{{ __('Why people use Kalta.uz') }}</h2>
-            </div>
-            <div class="features">
-                @foreach ($features as [$icon, $name, $text])
-                    <div class="feature">
-                        <span class="tool-icon"><x-i :name="$icon" :size="22" /></span>
-                        <div>
-                            <h3>{{ $name }}</h3>
-                            <p>{{ $text }}</p>
-                        </div>
-                    </div>
-                @endforeach
+            <div class="ticket">
+                <h2 class="home-title" id="promises-title">{{ __('A few promises') }}</h2>
+                <ul class="promises">
+                    @foreach ($promises as $promise)
+                        <li>{{ $promise }}</li>
+                    @endforeach
+                </ul>
             </div>
         </div>
     </section>
 
-    <section class="section alt" id="faq" aria-labelledby="faq-title">
-        <div class="container">
-            <div class="section-head">
-                <h2 id="faq-title">{{ __('Frequently asked questions') }}</h2>
+    <section class="home-block" id="faq" aria-labelledby="faq-title">
+        <div class="container faq-wrap">
+            <div class="faq-side">
+                <h2 class="home-title" id="faq-title">{{ __('People often ask') }}</h2>
+                <p>{{ __('Did not find an answer?') }} <a href="{{ config('kalta.telegram') }}" target="_blank" rel="noopener">{{ __('Write to us on Telegram.') }}</a></p>
             </div>
             <div class="faq">
                 @foreach ($faq as [$question, $answer])
@@ -174,13 +188,9 @@
         </div>
     </section>
 
-    <section class="section cta">
+    <section class="home-end">
         <div class="container">
-            <div class="cta-card">
-                <h2>{{ __('Ready to shorten your first link?') }}</h2>
-                <p>{{ __('It takes a few seconds and costs nothing.') }}</p>
-                <a class="btn btn-primary btn-lg" href="#shorten" data-focus="#url">{{ __('Start now') }} <x-i name="arrow-right" :size="20" /></a>
-            </div>
+            <a href="#shorten" data-focus="#url">{{ __('That is all. Now paste your link') }} <span aria-hidden="true">↑</span></a>
         </div>
     </section>
 
