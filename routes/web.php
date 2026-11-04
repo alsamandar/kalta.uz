@@ -22,8 +22,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | Pages people can land on are available in every language: the default
-| language at the root, the others under a prefix (/ru, /en). Route names are
-| "home", "ru.home", "en.home", ... so build their URLs with lroute().
+| language at the root, the others under a prefix (/ru). Route names are
+| "home", "ru.home", ... so build their URLs with lroute().
 |
 */
 
@@ -55,6 +55,9 @@ foreach (config('kalta.locales') as $locale => $label) {
             Route::post('qr', [QrController::class, 'generate'])->middleware('throttle:qr')->name('qr.generate');
         });
 }
+
+// The site was in English too until 2026-11; old /en addresses lead to the same page in Uzbek
+Route::get('en/{path?}', fn (?string $path = null) => redirect('/' . ltrim((string) $path, '/'), 301))->where('path', '.*');
 
 // Wedding invitations: private pages reached through secret links
 Route::middleware('noindex')->group(function () {

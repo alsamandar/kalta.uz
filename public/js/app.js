@@ -86,14 +86,6 @@
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
   };
 
-  /* ---------- Theme ---------- */
-  $$('[data-theme-toggle]').forEach((button) => button.addEventListener('click', () => {
-    const root = document.documentElement;
-    const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    root.dataset.theme = dark ? 'light' : 'dark';
-    try { localStorage.setItem('kalta-theme', root.dataset.theme); } catch (e) { /* ignore */ }
-  }));
-
   /* ---------- Menus (<details>) ---------- */
   document.addEventListener('click', (event) => {
     $$('[data-menu][open]').forEach((menu) => { if (!menu.contains(event.target)) menu.removeAttribute('open'); });
@@ -243,48 +235,6 @@
     renderHistory();
   }
 
-  /* ---------- Home: the scissors cut a long address down to a short one ---------- */
-  const snip = $('[data-snip]');
-  if (snip) {
-    const head = $('[data-snip-head]', snip);
-    const tail = $('[data-snip-tail]', snip);
-    const short = $('[data-snip-short]', snip);
-    const saved = $('[data-snip-saved]', snip);
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const count = () => {
-      const less = (head.textContent + tail.textContent).length - short.textContent.length;
-      saved.textContent = less > 0 ? t('snipSaved').replace(':count', less) : '';
-    };
-    let timer;
-    const cut = () => {
-      clearTimeout(timer);
-      snip.classList.remove('is-cut', 'is-done');
-      count();
-      if (still) { snip.classList.add('is-done'); return; }
-      void snip.offsetWidth; // restart the animation
-      snip.classList.add('is-cut');
-      timer = setTimeout(() => { snip.classList.remove('is-cut'); snip.classList.add('is-done'); }, 2000);
-    };
-    // the visitor's own link: the address up to the first slash stays, the rest is cut off
-    document.addEventListener('kalta:shortened', (event) => {
-      const { long, url } = event.detail || {};
-      if (!long || !url) return;
-      const match = String(long).match(/^(https?:\/\/[^/?#]+\/?)(.*)$/i);
-      head.textContent = match ? match[1] : long;
-      tail.textContent = (match && match[2]) || '…';
-      short.textContent = String(url).replace(/^https?:\/\//, '');
-      cut();
-    });
-    if ('IntersectionObserver' in window) {
-      const seen = new IntersectionObserver((entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) { seen.disconnect(); setTimeout(cut, 650); }
-      }, { threshold: 0.6 });
-      seen.observe(snip);
-    } else {
-      cut();
-    }
-  }
-
   /* ---------- Link shortener ---------- */
   const shortener = $('[data-shortener]');
   if (shortener) {
@@ -317,7 +267,6 @@
       if (navigator.share) share.hidden = false;
       resultBox.replaceChildren(node);
       node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      document.dispatchEvent(new CustomEvent('kalta:shortened', { detail: { long: data.long_url, url: data.url } }));
     }
 
 
@@ -979,34 +928,6 @@
       label.textContent = button.dataset.loading;
     }, 0);
   });
-
-  /* ---------- Suggest the visitor's language (never redirects on its own) ---------- */
-  document.addEventListener('click', (event) => {
-    if (event.target.closest('.menu-list a[hreflang], .site-footer a[hreflang]')) {
-      try { localStorage.setItem('kalta-lang-dismiss', '1'); } catch (e) { /* ignore */ }
-    }
-  });
-  try {
-    const alternates = K.alternates || {};
-    const preferred = (navigator.languages || [navigator.language || ''])
-      .map((lang) => String(lang).slice(0, 2).toLowerCase())
-      .find((lang) => alternates[lang]);
-    if (preferred && preferred !== K.locale && !localStorage.getItem('kalta-lang-dismiss')) {
-      const copy = {
-        ru: ['Открыть сайт на русском?', 'Да', 'Нет'],
-        en: ['View this site in English?', 'Yes', 'No'],
-        uz: ['Saytni oʻzbek tilida ochamizmi?', 'Ha', 'Yoʻq'],
-      }[preferred];
-      const dismiss = () => { try { localStorage.setItem('kalta-lang-dismiss', '1'); } catch (e) { /* ignore */ } bar.remove(); };
-      const yes = el('a', { className: 'btn btn-primary btn-sm', href: alternates[preferred], textContent: copy[1] });
-      yes.addEventListener('click', dismiss);
-      const no = el('button', { type: 'button', className: 'btn btn-ghost btn-sm', textContent: copy[2] });
-      no.addEventListener('click', dismiss);
-      const bar = el('div', { className: 'suggest', role: 'dialog' }, [el('span', { textContent: copy[0], lang: preferred }), el('div', { className: 'actions' }, [yes, no])]);
-      bar.setAttribute('aria-label', copy[0]);
-      document.body.append(bar);
-    }
-  } catch (e) { /* never break the page over a suggestion */ }
 
   /* ---------- Shared with the page-specific scripts (manage.js) ---------- */
   window.Kalta = { t, el, store, toast, copyText, fetchWithRetry, jsonHeaders };

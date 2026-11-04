@@ -62,7 +62,6 @@
             'retrying' => __('Connection problem. Trying again…'),
             'stillOffline' => __('We could not reach the server. Your details are still on this page: check your connection and tap the button again.'),
             'linkPrompt' => __('Link address (empty to remove the link)'),
-            'snipSaved' => __(':count characters shorter'),
             'tools' => [
                 'bold' => __('Bold'), 'italic' => __('Italic'), 'heading' => __('Heading'), 'subheading' => __('Subheading'),
                 'quote' => __('Quote'), 'list' => __('List'), 'link' => __('Link'), 'image' => __('Add a picture'),
@@ -114,15 +113,13 @@
     <meta name="twitter:description" content="{{ $metaDescription }}">
     <meta name="twitter:image" content="{{ $ogImage }}">
 
-    <meta name="color-scheme" content="light dark">
-    <meta name="theme-color" content="#fffaf3" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#15110d" media="(prefers-color-scheme: dark)">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#fffaf3">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
     <link rel="icon" href="{{ asset('img/favicon.svg') }}" type="image/svg+xml">
     <link rel="apple-touch-icon" href="{{ asset('img/apple-touch-icon.png') }}">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
 
-    <script>try{var t=localStorage.getItem('kalta-theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
     <link rel="preload" href="{{ asset('fonts/inter-latin-wght-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
     @if ($locale === 'ru')
         <link rel="preload" href="{{ asset('fonts/inter-cyrillic-wght-normal.woff2') }}" as="font" type="font/woff2" crossorigin>

@@ -29,7 +29,7 @@ class InvitationManageTest extends TestCase
             'event_at' => '2030-05-10T18:30',
             'venue' => 'Navruz',
             'host_email' => 'host@example.com',
-            'locale' => 'en',
+            'locale' => 'uz',
             'guests' => "Bobur, bobur@example.com\nDilnoza; +998 90 123 45 67\nSherzod",
         ], $overrides))->assertRedirect();
 
@@ -61,7 +61,7 @@ class InvitationManageTest extends TestCase
         // the WhatsApp button opens the chat with this very guest because a phone number is known
         $this->assertStringContainsString('https://wa.me/998901234567?text=', $html);
         $this->assertStringContainsString('https://t.me/share/url?url=' . rawurlencode($dilnoza->link()), $html);
-        $this->assertStringContainsString('data-text="Dilnoza, you are invited to the wedding of Aziz &amp; Malika!"', $html);
+        $this->assertStringContainsString('data-text="' . e($this->uz(':name, you are invited to the wedding of :couple!', ['name' => 'Dilnoza', 'couple' => 'Aziz & Malika'])) . '"', $html);
     }
 
     public function test_the_dashboard_speaks_the_visitors_language(): void
@@ -70,7 +70,6 @@ class InvitationManageTest extends TestCase
 
         $this->withUnencryptedCookie('lang', 'uz')->get($this->manage($invitation))->assertOk()->assertSee('Sizning taklifnomangiz')->assertSee('Yuborilmagan');
         $this->withUnencryptedCookie('lang', 'ru')->get($this->manage($invitation))->assertOk()->assertSee('Ваше приглашение')->assertSee('Не отправлено');
-        $this->withUnencryptedCookie('lang', 'en')->get($this->manage($invitation))->assertOk()->assertSee('Your invitation')->assertSee('Not sent');
     }
 
     public function test_the_numbers_follow_each_guest_from_sent_to_replied(): void
@@ -98,7 +97,7 @@ class InvitationManageTest extends TestCase
     {
         $invitation = $this->createInvitation(['guests' => '']);
 
-        $this->get($this->manage($invitation))->assertOk()->assertSee('No guests yet')->assertDontSee('data-guest-tools="" hidden', false);
+        $this->get($this->manage($invitation))->assertOk()->assertSee($this->uz('No guests yet. Add your guest list below and each guest gets a personal link.'))->assertDontSee('data-guest-tools="" hidden', false);
     }
 
     // ---------------------------------------------------------------- "sent" marks
@@ -263,7 +262,9 @@ class InvitationManageTest extends TestCase
 
         $this->post($this->manage($invitation, 'guests'), ['guests' => "Aziz Karimov, +998 90 123 45 67\nMALIKA\nBobur - bobur@example.com"])
             ->assertRedirect($this->manage($invitation))
-            ->assertSessionHas('success', fn ($message) => str_contains($message, 'Added 1 guest') && str_contains($message, '1 guest') && str_contains($message, '1 already on the list'));
+            ->assertSessionHas('success', fn ($message) => str_contains($message, $this->uz('Added :count guest(s).', ['count' => 1]))
+                && str_contains($message, $this->uz('Added contact details to :count guest(s).', ['count' => 1]))
+                && str_contains($message, $this->uz(':count already on the list.', ['count' => 1])));
 
         $guests = $invitation->guests()->orderBy('name')->get();
         $this->assertSame(['Aziz Karimov', 'Bobur', 'Malika'], $guests->pluck('name')->all());
@@ -272,7 +273,7 @@ class InvitationManageTest extends TestCase
 
         // the same paste again changes nothing
         $this->post($this->manage($invitation, 'guests'), ['guests' => "Aziz Karimov, +998 90 123 45 67\nBobur, bobur@example.com"])
-            ->assertSessionHas('error', fn ($message) => str_contains($message, '2 already on the list'));
+            ->assertSessionHas('error', fn ($message) => str_contains($message, $this->uz(':count already on the list.', ['count' => 2])));
         $this->assertSame(3, $invitation->guests()->count());
     }
 
@@ -300,7 +301,7 @@ class InvitationManageTest extends TestCase
         $invitation = $this->createInvitation(['guests' => 'One']);
 
         $this->post($this->manage($invitation, 'guests'), ['guests' => "Two\nThree\nFour"])
-            ->assertSessionHas('success', fn ($message) => str_contains($message, 'The list is full: 2 guests at most'));
+            ->assertSessionHas('success', fn ($message) => str_contains($message, $this->uz('The list is full: :max guests at most.', ['max' => 2])));
         $this->assertSame(2, $invitation->guests()->count());
     }
 
@@ -308,7 +309,7 @@ class InvitationManageTest extends TestCase
     {
         $invitation = $this->createInvitation();
 
-        $this->post($this->manage($invitation, 'guests'), ['guests' => " \n , \n"])->assertSessionHas('error', fn ($message) => str_contains($message, 'No guests found'));
+        $this->post($this->manage($invitation, 'guests'), ['guests' => " \n , \n"])->assertSessionHas('error', fn ($message) => str_contains($message, $this->uz('No guests found. Write one guest per line.')));
     }
 
     // ---------------------------------------------------------------- editing a guest
@@ -389,7 +390,7 @@ class InvitationManageTest extends TestCase
             'groom_name' => 'Samandar', 'bride_name' => 'Sarvinoz', 'event_at' => '2030-06-01T19:00', 'venue' => 'Sherdor',
             'address' => 'Massiv', 'map_url' => 'yandex.uz/maps/-/CCUZ', 'message' => 'Welcome', 'host_email' => 'new@example.com',
             'rsvp_deadline' => '2030-05-20', 'locale' => 'uz', 'share_message' => 'Assalomu alaykum, {name}!',
-        ])->assertRedirect($this->manage($invitation))->assertSessionHas('success', 'Changes saved.');
+        ])->assertRedirect($this->manage($invitation))->assertSessionHas('success', $this->uz('Changes saved.'));
 
         $invitation->refresh();
         $this->assertSame(['Samandar', 'Sarvinoz', 'Sherdor', 'uz', 'https://yandex.uz/maps/-/CCUZ'], [$invitation->groom_name, $invitation->bride_name, $invitation->venue, $invitation->locale, $invitation->map_url]);
@@ -404,7 +405,7 @@ class InvitationManageTest extends TestCase
         $invitation = $this->createInvitation();
 
         $this->patchJson($this->invitationUrl($invitation), [
-            'groom_name' => 'A', 'bride_name' => 'B', 'event_at' => '2030-06-01T19:00', 'venue' => 'V', 'locale' => 'en',
+            'groom_name' => 'A', 'bride_name' => 'B', 'event_at' => '2030-06-01T19:00', 'venue' => 'V', 'locale' => 'uz',
         ])->assertStatus(201)->assertJson(['redirect' => url($this->manage($invitation))]);
     }
 
@@ -483,7 +484,7 @@ class InvitationManageTest extends TestCase
         $code = $invitation->kalta->url;
         $other = $this->createInvitation(['guests' => 'Keep me']);
 
-        $this->delete($this->invitationUrl($invitation))->assertRedirect(route('en.home'))->assertSessionHas('success');
+        $this->delete($this->invitationUrl($invitation))->assertRedirect(route('home'))->assertSessionHas('success');
 
         $this->assertNull(Invitation::find($invitation->id));
         $this->assertSame(0, InvitationGuest::where('invitation_id', $invitation->id)->count());
@@ -512,9 +513,9 @@ class InvitationManageTest extends TestCase
         $this->assertStringStartsWith("\xEF\xBB\xBF", $csv, 'a BOM so that Excel reads the letters correctly');
 
         $lines = preg_split('/\r\n/', trim(substr($csv, 3)));
-        $this->assertSame('Name,Phone,E-mail,Reply,People,Wishes,Sent at,Opened at,Replied at,Personal link', $lines[0], 'English uses commas');
-        $this->assertStringContainsString('Bobur,,bobur@example.com,No reply,', $lines[1]);
-        $this->assertStringContainsString('Dilnoza,+998 90 123 45 67,,Coming,2,"Congrats, ""friends""",', $lines[2]);
+        $this->assertSame('Ism;Telefon;E-pochta;Javob;Kishilar;Tilaklar;Yuborilgan vaqt;Ochilgan vaqt;Javob vaqti;Shaxsiy havola', $lines[0], 'Uzbek Excel expects semicolons');
+        $this->assertStringContainsString('Bobur;;bobur@example.com;' . $this->uz('No reply') . ';', $lines[1]);
+        $this->assertStringContainsString('Dilnoza;+998 90 123 45 67;;' . $this->uz('Coming') . ';2;"Congrats, ""friends""";', $lines[2]);
         $this->assertStringContainsString($dilnoza->link(), $lines[2]);
     }
 
@@ -537,11 +538,11 @@ class InvitationManageTest extends TestCase
 
         $csv = $this->get($this->manage($invitation, 'guests.csv'))->streamedContent();
 
-        $this->assertStringContainsString("'=cmd,+998 90 123 45 67", $csv);
+        $this->assertStringContainsString("'=cmd;+998 90 123 45 67", $csv);
         $this->assertStringContainsString("\"'=HYPERLINK(\"\"http://evil.example\"\",\"\"click\"\")\"", $csv);
         $this->assertStringContainsString("'@SUM(1+1)", $csv);
         $this->assertStringContainsString("'-2+3", $csv);
-        $this->assertStringNotContainsString(",=HYPERLINK", $csv);
+        $this->assertStringNotContainsString(";=HYPERLINK", $csv);
     }
 
     // ---------------------------------------------------------------- calendar
@@ -560,7 +561,7 @@ class InvitationManageTest extends TestCase
             $this->assertStringEndsWith("END:VCALENDAR\r\n", $ics);
             $this->assertStringContainsString("DTSTART:20300510T133000Z\r\n", $ics, '18:30 in Tashkent is 13:30 UTC');
             $this->assertStringContainsString("DTEND:20300510T173000Z\r\n", $ics);
-            $this->assertStringContainsString('SUMMARY:Wedding of Aziz & Malika', $ics);
+            $this->assertStringContainsString('SUMMARY:' . $this->uz('Wedding of :couple', ['couple' => 'Aziz & Malika']), $ics);
             $this->assertStringContainsString('LOCATION:Navruz\, hall 2\, Main street\; 1', $ics, 'commas and semicolons are escaped');
             $this->assertStringContainsString('Line one\nLine two', $ics);
             $this->assertStringContainsString('BEGIN:VALARM', $ics);
@@ -674,16 +675,16 @@ class InvitationManageTest extends TestCase
 
         $this->post($this->manage($invitation, 'send'))
             ->assertRedirect($this->manage($invitation))
-            ->assertSessionHas('error', fn ($message) => str_contains($message, 'no working mail settings'));
+            ->assertSessionHas('error', fn ($message) => str_contains($message, $this->uz('E-mail could not be sent: the server has no working mail settings. Send the personal links through Telegram or WhatsApp instead.')));
     }
 
     public function test_the_page_only_offers_e_mail_when_somebody_has_an_address(): void
     {
         $withMail = $this->createInvitation();
-        $this->get($this->manage($withMail))->assertSee('E-mail invitations');
+        $this->get($this->manage($withMail))->assertSee($this->uz('E-mail invitations'));
 
         $without = $this->createInvitation(['guests' => 'Dilnoza, +998 90 123 45 67']);
-        $this->get($this->manage($without))->assertDontSee('E-mail invitations');
+        $this->get($this->manage($without))->assertDontSee($this->uz('E-mail invitations'));
     }
 
     public function test_sending_e_mail_marks_the_guests_as_sent_by_e_mail(): void

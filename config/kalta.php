@@ -9,20 +9,19 @@ return [
     | Languages
     |--------------------------------------------------------------------------
     | The default locale is served from the site root (/), the others from a
-    | prefix (/ru, /en). Keep the default locale first.
+    | prefix (/ru). English was dropped in 2026-11: /en/... redirects to the Uzbek page. Keep the default locale first.
     */
     'default_locale' => 'uz',
 
     'locales' => [
         'uz' => 'Oʻzbekcha',
         'ru' => 'Русский',
-        'en' => 'English',
     ],
 
-    'og_locales' => ['uz' => 'uz_UZ', 'ru' => 'ru_RU', 'en' => 'en_US'],
+    'og_locales' => ['uz' => 'uz_UZ', 'ru' => 'ru_RU'],
 
     // Carbon has Cyrillic Uzbek as "uz"; the Latin script is "uz_Latn"
-    'carbon_locales' => ['uz' => 'uz_Latn', 'ru' => 'ru', 'en' => 'en'],
+    'carbon_locales' => ['uz' => 'uz_Latn', 'ru' => 'ru'],
 
     /*
     |--------------------------------------------------------------------------

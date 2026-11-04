@@ -25,7 +25,7 @@ class InvitationTest extends TestCase
             'event_at' => now()->addMonth()->format('Y-m-d\TH:i'),
             'venue' => 'Navruz',
             'host_email' => 'host@example.com',
-            'locale' => 'en',
+            'locale' => 'uz',
             'guests' => "Bobur, bobur@example.com\nDilnoza; +998 90 123 45 67\n\n",
         ], $overrides))->assertRedirect();
 
@@ -104,7 +104,7 @@ class InvitationTest extends TestCase
         $guest = $this->createInvitation()->guests->first();
 
         // the controller sends it with ->locale($invitation->locale); do the same here
-        (new WeddingInvitationMail($guest))->locale('en')->assertSeeInHtml($guest->link())->assertSeeInHtml('Dear Bobur');
+        (new WeddingInvitationMail($guest))->locale('uz')->assertSeeInHtml($guest->link())->assertSeeInHtml($this->uz('Dear :name,', ['name' => 'Bobur']));
         (new WeddingInvitationMail($guest))->locale('ru')->assertSeeInHtml('Дорогой(ая) Bobur')->assertSeeInHtml('Открыть приглашение и ответить');
     }
 
@@ -123,7 +123,7 @@ class InvitationTest extends TestCase
         Mail::fake();
         $guest = $this->createInvitation()->guests->first();
 
-        $this->get("/i/{$guest->token}")->assertOk()->assertSee('Dear Bobur');
+        $this->get("/i/{$guest->token}")->assertOk()->assertSee($this->uz('Dear :name,', ['name' => 'Bobur']));
 
         $this->post("/i/{$guest->token}/rsvp", ['status' => 'attending', 'party_size' => 2, 'note' => 'Congrats!'])->assertRedirect();
 

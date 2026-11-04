@@ -1,6 +1,6 @@
 # Kalta.uz
 
-Free tools for the web, in Uzbek, Russian and English:
+Free tools for the web, in Uzbek and Russian:
 
 | Tool | Page | What it does |
 |------|------|--------------|
@@ -29,11 +29,12 @@ php artisan test          # SQLite in memory, never touches your database
 
 ## Languages
 
-* Uzbek (Latin) is served from the root, Russian from `/ru`, English from `/en`. Each page links to the others with
-  `hreflang`, and `/sitemap.xml` lists every page in every language.
+* Uzbek (Latin) is served from the root, Russian from `/ru`. Each page links to the other with `hreflang`, and
+  `/sitemap.xml` lists every page in both languages. English was dropped in November 2026 (the site is for
+  Uzbekistan); old `/en/...` addresses redirect to the Uzbek page with a 301.
 * In views always build links with `lroute('route.name')` (keeps the current language), never `route()`
-  for pages that exist in all three languages. Routes are registered per language in `routes/web.php`
-  (`home`, `ru.home`, `en.home`, ...).
+  for pages that exist in both languages. Routes are registered per language in `routes/web.php`
+  (`home`, `ru.home`, ...).
 * Strings are plain English keys: `{{ __('Shorten link') }}`. Add the Uzbek and Russian text to `lang/uz.json` and
   `lang/ru.json`. `tests/Feature/InfrastructureTest.php` fails if a string is missing, or a `:placeholder` is lost.
 * Uzbek uses `oʻ` / `gʻ` (U+02BB) and `ʼ` (U+02BC); a test checks for stray `'` and `‘`.
@@ -82,7 +83,7 @@ app/Http/Controllers   one controller per tool (Short, File, Qr, Code, Bio, Invi
 app/Http/Middleware    SetLocale, SecurityHeaders, NoIndex, CloudflareClientIp
 app/Helpers/functions.php   lroute(), qr_svg(), normalize_url(), randomString(), upload_limit_kb() ...
 resources/views        layouts/app.blade.php is the page shell (SEO head, JSON-LD); one folder per tool
-public/css/app.css     the whole design system (light/dark); home.css (the cut-tape hero, the tool shelf), post.css, invitation.css (guest page) and manage.css (hosts' pages) only where used
+public/css/app.css     the whole design system (light only: the dark theme was removed); home.css (one field to shorten a link, the list of tools), post.css, invitation.css (guest page) and manage.css (hosts' pages) only where used
 public/js/app.js       progressive enhancement; every page also works without it
 public/js/manage.js    hosts' pages only: guest search/filters, "sent" marks with undo, new-reply banner, date hint
 app/Support            Submission, Images, Icons, GuestList (paste parser + dedupe), Ics (calendar file), Visitors (who is a person), PreviewImage (link-preview picture)

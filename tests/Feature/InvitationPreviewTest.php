@@ -30,7 +30,7 @@ class InvitationPreviewTest extends TestCase
             'event_at' => '2030-05-10T18:30',
             'venue' => 'Navruz restaurant',
             'address' => 'Main street 1',
-            'locale' => 'en',
+            'locale' => 'uz',
             'guests' => 'Bobur',
         ], $overrides))->assertRedirect();
 
@@ -123,8 +123,8 @@ class InvitationPreviewTest extends TestCase
             $this->get($url)
                 ->assertOk()
                 ->assertSee('<meta property="og:image" content="' . $picture . '">', false)
-                ->assertSee('<meta property="og:title" content="Wedding of Aziz &amp; Malika · Kalta.uz">', false)
-                ->assertSee('<meta property="og:description" content="Friday, 10 May 2030 · 18:30 · Navruz restaurant, Main street 1">', false)
+                ->assertSee('<meta property="og:title" content="' . e($this->uz('Wedding of :couple', ['couple' => 'Aziz & Malika'])) . ' · Kalta.uz">', false)
+                ->assertSee('<meta property="og:description" content="Juma, 10 May 2030 · 18:30 · Navruz restaurant, Main street 1">', false)
                 ->assertSee('<meta property="og:image:width" content="1200">', false);
         }
     }
@@ -154,8 +154,8 @@ class InvitationPreviewTest extends TestCase
         $cases = [
             ['locale' => 'ru', 'groom_name' => 'Александр', 'bride_name' => 'Мария', 'venue' => 'Ресторан «Навруз»', 'address' => 'ул. Амира Темура, 108'],
             ['locale' => 'uz', 'groom_name' => 'Oʻgʻiloy', 'bride_name' => 'Shahrizoda', 'venue' => 'Sherdor to’yxonasi, massiv', 'address' => 'Sheroz toʻyxonasi'],
-            ['locale' => 'en', 'groom_name' => str_repeat('Abdurahmonovich ', 7), 'bride_name' => str_repeat('Shukurullayeva ', 7), 'venue' => str_repeat('A very long venue name ', 20), 'address' => str_repeat('x', 400)],
-            ['locale' => 'en', 'groom_name' => 'Zoë 🤍', 'bride_name' => 'Åsa 新娘', 'venue' => 'Café Ñandú', 'address' => ''],
+            ['locale' => 'uz', 'groom_name' => str_repeat('Abdurahmonovich ', 7), 'bride_name' => str_repeat('Shukurullayeva ', 7), 'venue' => str_repeat('A very long venue name ', 20), 'address' => str_repeat('x', 400)],
+            ['locale' => 'uz', 'groom_name' => 'Zoë 🤍', 'bride_name' => 'Åsa 新娘', 'venue' => 'Café Ñandú', 'address' => ''],
             ['locale' => 'ru', 'groom_name' => 'Иван Петров', 'bride_name' => 'Anna-Мария', 'venue' => 'Hall №5 «Mix»', 'address' => null],
         ];
 

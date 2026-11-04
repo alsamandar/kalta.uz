@@ -1,6 +1,5 @@
 /* Wedding invitation pages for the hosts (manage, edit, edit guest) — loaded only where they are used. */
 
-.page-manage .tools-nav { display: none; } /* the hosts are here for their guest list, not for the other tools */
 .container.mid { max-width: 960px; }
 .manage { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding-top: 24px; } /* minmax(0, ...): a wide child must not stretch the column past the screen */
 .manage > .card, .manage > form.card { margin-top: 0; }

@@ -11,16 +11,22 @@ class LocaleAndSeoTest extends TestCase
 
     public function test_the_home_page_exists_in_every_language(): void
     {
-        foreach (['/' => 'uz', '/ru' => 'ru', '/en' => 'en'] as $path => $lang) {
+        foreach (['/' => 'uz', '/ru' => 'ru'] as $path => $lang) {
             $this->get($path)->assertOk()->assertSee('<html lang="' . $lang . '"', false);
         }
+    }
+
+    public function test_the_old_english_pages_lead_to_the_uzbek_ones(): void
+    {
+        $this->get('/en')->assertRedirect(url('/'))->assertStatus(301);
+        $this->get('/en/files/create')->assertRedirect(url('/files/create'))->assertStatus(301);
     }
 
     public function test_every_localised_page_is_complete_in_every_language(): void
     {
         $pages = ['', '/files/create', '/qr', '/codes/create', '/bio/create', '/invitations/create'];
 
-        foreach (['' => 'uz', '/ru' => 'ru', '/en' => 'en'] as $prefix => $lang) {
+        foreach (['' => 'uz', '/ru' => 'ru'] as $prefix => $lang) {
             foreach ($pages as $page) {
                 $path = $prefix . $page ?: '/';
                 $html = $this->get($path)->assertOk()->getContent();
@@ -31,7 +37,7 @@ class LocaleAndSeoTest extends TestCase
                 $this->assertGreaterThan(60, mb_strlen(html_entity_decode($description[1] ?? '')), "$path description too short");
                 $this->assertLessThan(200, mb_strlen(html_entity_decode($description[1] ?? '')), "$path description too long");
                 $this->assertStringContainsString('<link rel="canonical" href="' . url($path === '/' ? '/' : $path) . '">', $html);
-                $this->assertSame(4, substr_count($html, 'rel="alternate" hreflang='), "$path hreflang (uz, ru, en, x-default)");
+                $this->assertSame(3, substr_count($html, 'rel="alternate" hreflang='), "$path hreflang (uz, ru, x-default)");
                 $this->assertStringContainsString('<meta name="robots" content="noindex, nofollow">', $html);
                 $this->assertStringNotContainsString('Undefined', $html);
             }
@@ -40,11 +46,11 @@ class LocaleAndSeoTest extends TestCase
 
     public function test_the_head_carries_open_graph_and_valid_structured_data(): void
     {
-        $html = $this->get('/en')->assertOk()->getContent();
+        $html = $this->get('/ru')->assertOk()->getContent();
 
-        $this->assertStringContainsString('<meta property="og:locale" content="en_US">', $html);
-        $this->assertStringContainsString('<meta property="og:image" content="' . asset('img/og-en.png'), $html);
-        $this->assertFileExists(public_path('img/og-en.png'));
+        $this->assertStringContainsString('<meta property="og:locale" content="ru_RU">', $html);
+        $this->assertStringContainsString('<meta property="og:image" content="' . asset('img/og-ru.png'), $html);
+        $this->assertFileExists(public_path('img/og-ru.png'));
 
         preg_match('#<script type="application/ld\+json">(.*?)</script>#s', $html, $match);
         $data = json_decode($match[1], true, 512, JSON_THROW_ON_ERROR);
@@ -79,22 +85,23 @@ class LocaleAndSeoTest extends TestCase
         $this->withHeader('Accept-Language', 'uz-UZ,uz;q=0.9')->get('/login')->assertSee('<html lang="uz"', false);
         $this->withHeader('Accept-Language', 'de-DE')->get('/login')->assertSee('<html lang="uz"', false); // unsupported language: the site default
         $this->withHeader('Accept-Language', 'ru-RU,ru;q=0.9,en;q=0.8')->get('/login')->assertSee('<html lang="ru"', false);
-        $this->withHeader('Accept-Language', 'en-US')->get('/login')->assertSee('<html lang="en"', false);
-        $this->withUnencryptedCookie('lang', 'en')->withHeader('Accept-Language', 'ru')->get('/login')->assertSee('<html lang="en"', false);
+        $this->withHeader('Accept-Language', 'en-US')->get('/login')->assertSee('<html lang="uz"', false); // English is no longer offered
+        $this->withUnencryptedCookie('lang', 'ru')->withHeader('Accept-Language', 'uz')->get('/login')->assertSee('<html lang="ru"', false);
+        $this->withUnencryptedCookie('lang', 'en')->withHeader('Accept-Language', 'ru')->get('/login')->assertSee('<html lang="ru"', false); // an old cookie is ignored
     }
 
     public function test_visiting_a_language_remembers_it(): void
     {
         $this->get('/ru')->assertCookie('lang', 'ru', false);
-        $this->get('/en')->assertCookie('lang', 'en', false);
     }
 
     public function test_the_language_switch_sets_the_cookie_and_goes_back(): void
     {
         $this->from('/login')->get('/lang/ru')->assertRedirect(url('/login'))->assertCookie('lang', 'ru', false);
-        $this->from('https://evil.example/phish')->get('/lang/en')->assertRedirect(url('/'));
-        $this->from('http://localhost.evil.example/phish')->get('/lang/en')->assertRedirect(url('/')); // look-alike host
+        $this->from('https://evil.example/phish')->get('/lang/uz')->assertRedirect(url('/'));
+        $this->from('http://localhost.evil.example/phish')->get('/lang/uz')->assertRedirect(url('/')); // look-alike host
         $this->get('/lang/de')->assertNotFound();
+        $this->get('/lang/en')->assertNotFound();
     }
 
     public function test_the_language_menu_links_to_the_same_page_in_each_language(): void
@@ -102,7 +109,8 @@ class LocaleAndSeoTest extends TestCase
         $html = $this->get('/ru/qr')->getContent();
 
         $this->assertStringContainsString('href="' . url('/qr') . '" lang="uz" hreflang="uz"', $html);
-        $this->assertStringContainsString('href="' . url('/en/qr') . '" lang="en" hreflang="en"', $html);
+        $this->assertStringContainsString('href="' . url('/ru/qr') . '" lang="ru" hreflang="ru"', $html);
+        $this->assertStringNotContainsString('hreflang="en"', $html);
     }
 
     public function test_private_pages_are_kept_out_of_search_results(): void
@@ -161,7 +169,7 @@ class LocaleAndSeoTest extends TestCase
     public function test_every_link_on_every_page_works(): void
     {
         $seen = [];
-        $queue = ['/', '/ru', '/en', '/files/create', '/qr', '/codes/create', '/bio/create', '/invitations/create', '/login', '/register', '/ru/qr', '/en/bio/create'];
+        $queue = ['/', '/ru', '/files/create', '/qr', '/codes/create', '/bio/create', '/invitations/create', '/login', '/register', '/ru/qr', '/ru/bio/create'];
 
         while ($queue) {
             $path = array_shift($queue);
@@ -190,6 +198,6 @@ class LocaleAndSeoTest extends TestCase
             }
         }
 
-        $this->assertGreaterThan(20, count($seen), 'the crawl should have found plenty of pages');
+        $this->assertGreaterThan(15, count($seen), 'the crawl should have found plenty of pages');
     }
 }

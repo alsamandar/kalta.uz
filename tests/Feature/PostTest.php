@@ -256,7 +256,7 @@ class PostTest extends TestCase
 
     public function test_the_editor_page_is_available_in_every_language(): void
     {
-        foreach (['/posts/create' => 'Post yozish', '/ru/posts/create' => 'Написать пост', '/en/posts/create' => 'Write a post'] as $path => $title) {
+        foreach (['/posts/create' => 'Post yozish', '/ru/posts/create' => 'Написать пост'] as $path => $title) {
             $this->get($path)->assertOk()->assertSee($title)->assertSee('data-post-body', false);
         }
         $this->assertTrue(Str::contains($this->get('/')->getContent(), route('posts.create')));
