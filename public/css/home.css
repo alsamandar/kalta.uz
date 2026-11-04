@@ -1,4 +1,4 @@
-/* Kalta.uz — home page only: one field to shorten a link, then a plain list of the other tools. */
+/* Kalta.uz — home page only: one field to shorten a link, then the questions people ask. */
 
 .home-hero { padding: clamp(36px, 9vw, 96px) 0 clamp(28px, 5vw, 48px); text-align: center; }
 .home-hero h1 { margin: 0 0 10px; font-size: clamp(2rem, 6.4vw, 3.4rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.08; }
@@ -27,19 +27,7 @@
 .home-hero .field-error, .home-hero .result, .home-hero .history { text-align: left; }
 .home-hero .hero-note { font-size: 0.82rem; }
 
-/* the other tools: one row each, nothing to decode */
+/* the questions under the field */
 .home-more { padding: clamp(20px, 4vw, 36px) 0 clamp(28px, 5vw, 48px); }
 .home-more h2 { margin: 0 0 14px; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; }
-.tool-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.tool-list a {
-  display: flex; align-items: center; gap: 14px; padding: 12px 14px; color: var(--ink); text-decoration: none;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; transition: border-color 0.15s;
-}
-.tool-list a:hover { border-color: var(--brand); color: var(--ink); }
-.tool-list-icon { display: grid; flex: none; place-items: center; width: 42px; height: 42px; background: var(--brand-soft); color: var(--brand-ink); border-radius: 11px; }
-.tool-list-text { display: grid; flex: 1; min-width: 0; gap: 1px; }
-.tool-list-text b { font-size: 1.02rem; }
-.tool-list-text small { color: var(--muted); font-size: 0.88rem; line-height: 1.35; }
-.tool-list-go { flex: none; color: var(--muted); transform: rotate(-90deg); }
-
 #faq .faq { max-width: none; }

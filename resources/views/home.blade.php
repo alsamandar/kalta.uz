@@ -2,14 +2,6 @@
     $locale = app()->getLocale();
     $maxMb = max(1, round(upload_limit_kb() / 1024));
 
-    $tools = [
-        ['upload', __('Share a file'), __('Up to :mb MB. Only people with the link can download it.', ['mb' => $maxMb]), lroute('files.create')],
-        ['qr', __('QR code generator'), __('For a poster, a menu or a business card.'), lroute('qr.create')],
-        ['user', __('Link in bio'), __('Instagram, Telegram, your shop: one address for your profile.'), lroute('bio.create')],
-        ['file-text', __('Write a post'), __('Like Telegraph: a title, a story, pictures. No account.'), lroute('posts.create')],
-        ['code', __('Text & code snippets'), __('Paste it, pick when it disappears, send the link.'), lroute('codes.create')],
-        ['heart', __('Wedding invitation'), __('A personal link for every guest, and you see who is coming.'), lroute('invitations.create')],
-    ];
 
     $faq = [
         [__('Is Kalta.uz free?'), __('Yes. Shortening links, creating QR codes and sharing files or text is free and does not require an account.')],
@@ -51,7 +43,7 @@
         <link rel="stylesheet" href="{{ asset_v('css/home.css') }}">
     @endpush
 
-    {{-- one job on the first screen, like the download sites people already know: paste a link, get a short one --}}
+    {{-- one job on the first screen, like the download sites people already know: paste a link, get a short one; the other tools live in the menu --}}
     <section class="home-hero" id="shorten">
         <div class="container narrow">
             <h1>{{ __('Make a long link short') }}</h1>
@@ -83,23 +75,6 @@
             </section>
 
             <p class="hero-note">{{ __('By using Kalta.uz you agree not to share spam, phishing or illegal content.') }}</p>
-        </div>
-    </section>
-
-    <section class="home-more" aria-labelledby="tools-title">
-        <div class="container narrow">
-            <h2 id="tools-title">{{ __('Other tools') }}</h2>
-            <ul class="tool-list">
-                @foreach ($tools as [$icon, $name, $text, $href])
-                    <li>
-                        <a href="{{ $href }}">
-                            <span class="tool-list-icon"><x-i :name="$icon" :size="22" /></span>
-                            <span class="tool-list-text"><b>{{ $name }}</b><small>{{ $text }}</small></span>
-                            <x-i name="chevron-down" :size="20" class="tool-list-go" />
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
         </div>
     </section>
 

@@ -3,10 +3,10 @@
     $tools = [
         ['home', 'link', __('Shorten link'), ['home', 'ru.home']],
         ['files.create', 'upload', __('Share a file'), ['*files.create']],
-        ['qr.create', 'qr', __('QR code'), ['*qr.create']],
+        ['qr.create', 'qr', __('QR code generator'), ['*qr.create']],
         ['codes.create', 'code', __('Text & code'), ['*codes.create']],
         ['bio.create', 'user', __('Link in bio'), ['*bio.create']],
-        ['posts.create', 'file-text', __('Post'), ['*posts.create']],
+        ['posts.create', 'file-text', __('Write a post'), ['*posts.create']],
         ['invitations.create', 'heart', __('Wedding invitation'), ['*invitations.create']],
     ];
     $locale = app()->getLocale();

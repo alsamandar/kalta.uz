@@ -15,8 +15,8 @@
             <h2 class="footer-title">{{ __('Tools') }}</h2>
             <ul>
                 <li><a href="{{ lroute('home') }}">{{ __('Shorten link') }}</a></li>
-                <li><a href="{{ lroute('files.create') }}">{{ __('Upload a file') }}</a></li>
-                <li><a href="{{ lroute('qr.create') }}">{{ __('QR code') }}</a></li>
+                <li><a href="{{ lroute('files.create') }}">{{ __('Share a file') }}</a></li>
+                <li><a href="{{ lroute('qr.create') }}">{{ __('QR code generator') }}</a></li>
                 <li><a href="{{ lroute('codes.create') }}">{{ __('Text & code') }}</a></li>
                 <li><a href="{{ lroute('bio.create') }}">{{ __('Link in bio') }}</a></li>
                 <li><a href="{{ lroute('posts.create') }}">{{ __('Write a post') }}</a></li>
