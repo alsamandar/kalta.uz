@@ -85,18 +85,20 @@ class LinkToolsTest extends TestCase
 
     public function test_a_file_can_be_shared_and_is_served_as_a_download(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
 
         $response = $this->postJson('/files', ['file' => UploadedFile::fake()->create('report.pdf', 100, 'application/pdf')])
             ->assertCreated();
 
-        $this->assertCount(1, Storage::disk('public')->files('uploads'));
-        $this->assertStringEndsWith('.bin', Storage::disk('public')->files('uploads')[0], 'stored under a neutral name');
+        $this->assertCount(1, Storage::disk('local')->files('uploads'));
+        $this->assertStringEndsWith('.bin', Storage::disk('local')->files('uploads')[0], 'stored under a neutral name');
+        $this->assertCount(0, Storage::disk('public')->files('uploads'), 'outside the web root');
 
         $this->get('/' . $response->json('code'))
             ->assertOk()
             ->assertHeader('content-disposition', 'attachment; filename=report.pdf')
-            ->assertHeader('X-Robots-Tag', 'noindex');
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
 
         $this->get($response->json('created_url'))->assertOk()->assertSee('report.pdf');
     }

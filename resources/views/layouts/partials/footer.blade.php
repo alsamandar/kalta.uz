@@ -19,6 +19,7 @@
                 <li><a href="{{ lroute('qr.create') }}">{{ __('QR code') }}</a></li>
                 <li><a href="{{ lroute('codes.create') }}">{{ __('Text & code') }}</a></li>
                 <li><a href="{{ lroute('bio.create') }}">{{ __('Link in bio') }}</a></li>
+                <li><a href="{{ lroute('posts.create') }}">{{ __('Write a post') }}</a></li>
                 <li><a href="{{ lroute('invitations.create') }}">{{ __('Wedding invitation') }}</a></li>
             </ul>
         </nav>

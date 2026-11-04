@@ -60,6 +60,7 @@ return [
     'reserved_words' => [
         'admin', 'login', 'files', 'codes', 'bio', 'qr', 'ru', 'en', 'uz', 'lang', 'api',
         'created', 'profile', 'register', 'sitemap', 'robots', 'storage', 'images', 'fonts',
+        'posts', 'media', 'preview', 'invitations', 'dashboard', 'i',
     ],
 
     /*

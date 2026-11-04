@@ -1,5 +1,5 @@
 @php
-    $icons = ['short' => 'link', 'file' => 'upload', 'bio' => 'user', 'code' => 'code', 'invitation' => 'heart'];
+    $icons = ['short' => 'link', 'file' => 'upload', 'bio' => 'user', 'code' => 'code', 'invitation' => 'heart', 'post' => 'file-text'];
 @endphp
 <x-app-layout :title="__('My links')" :noindex="true" :ads="false">
     <x-page-hero :title="__('My links')" :lead="__('Links, files and pages you created while logged in.')" icon="user" />
@@ -10,6 +10,7 @@
                 <a class="btn btn-primary btn-sm" href="{{ lroute('home') }}#shorten"><x-i name="link" :size="16" />{{ __('Shorten link') }}</a>
                 <a class="btn btn-secondary btn-sm" href="{{ lroute('files.create') }}"><x-i name="upload" :size="16" />{{ __('Upload a file') }}</a>
                 <a class="btn btn-secondary btn-sm" href="{{ lroute('bio.create') }}"><x-i name="user" :size="16" />{{ __('Link in bio') }}</a>
+                <a class="btn btn-secondary btn-sm" href="{{ lroute('posts.create') }}"><x-i name="file-text" :size="16" />{{ __('Write a post') }}</a>
             </div>
             <div class="share-row" style="margin:0">
                 <a class="btn btn-ghost btn-sm" href="{{ route('profile.edit') }}">{{ __('Profile') }}</a>
@@ -40,6 +41,9 @@
                         </div>
                         <span class="link-stat"><x-i name="bar-chart" :size="16" />{{ number_format($kalta->clicks) }}</span>
                         <button type="button" class="icon-btn" data-copy-text="{{ $kalta->short_url }}" title="{{ __('Copy') }}" aria-label="{{ __('Copy') }} {{ $kalta->short_url }}"><x-i name="copy" :size="18" /></button>
+                        @if ($target instanceof \App\Models\Post)
+                            <a class="icon-btn" href="{{ route('posts.edit', $target) }}" title="{{ __('Edit') }}" aria-label="{{ __('Edit') }} {{ $title }}"><x-i name="edit" :size="18" /></a>
+                        @endif
                         <a class="icon-btn" href="{{ lroute('created', $kalta) }}" title="{{ __('Details & QR code') }}" aria-label="{{ __('Details & QR code') }}"><x-i name="qr" :size="18" /></a>
                         <form method="POST" action="{{ route('kaltas.destroy', $kalta) }}" data-confirm="{{ __('Delete this link? This cannot be undone.') }}">
                             @csrf @method('DELETE')

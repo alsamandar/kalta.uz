@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Serves uploaded avatars and covers from storage/app/public, so the web server
+ * Serves uploaded avatars, covers and post pictures from storage/app/public, so the web server
  * needs no write access to public/ and no storage:link symlink.
  */
 class MediaController extends Controller

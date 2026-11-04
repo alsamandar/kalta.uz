@@ -689,6 +689,164 @@
     });
   });
 
+  /* ---------- Posts: a small rich-text editor in place of the textarea (the server cleans whatever it gets) ---------- */
+  const postBody = $('textarea[data-post-body]');
+  if (postBody) {
+    const form = postBody.form;
+    const format = $('[data-post-format]', form);
+    const draftKey = 'kalta-post-draft';
+    const keepDraft = form.hasAttribute('data-post-draft');
+    const escapeHtml = (text) => text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const titleInput = form.elements.title;
+    const authorInput = form.elements.author;
+    const textToHtml = (text) => text.replace(/\r\n?/g, '\n').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+      .map((p) => '<p>' + escapeHtml(p).replace(/\n/g, '<br>') + '</p>').join('');
+
+    const editor = el('div', { className: 'post-body pe-body', contentEditable: 'true' });
+    editor.setAttribute('role', 'textbox');
+    editor.setAttribute('aria-multiline', 'true');
+    editor.setAttribute('aria-label', postBody.dataset.placeholder || '');
+    editor.dataset.placeholder = postBody.dataset.placeholder || '';
+
+    const draft = keepDraft ? store.get(draftKey, null) : null;
+    const startHtml = format.value === 'html' ? postBody.value : textToHtml(postBody.value);
+    editor.innerHTML = startHtml || (draft && draft.html) || '<p><br></p>';
+    if (draft && !startHtml && !titleInput.value) {
+      titleInput.value = draft.title || '';
+      if (draft.author && !authorInput.value) authorInput.value = draft.author;
+    }
+
+    // toolbar: each button runs a command on the selection; mousedown keeps the selection in the editor
+    const exec = (command, value = null) => { editor.focus(); document.execCommand(command, false, value); sync(); };
+    const blockOf = () => {
+      const node = getSelection().anchorNode;
+      const block = node && (node.nodeType === 1 ? node : node.parentElement).closest('h3, h4, blockquote, li, p');
+      return block && editor.contains(block) ? block.nodeName.toLowerCase() : '';
+    };
+    const toggleBlock = (tag) => exec('formatBlock', blockOf() === tag ? 'p' : tag);
+    const addLink = () => {
+      const url = window.prompt(K.i18n.linkPrompt || 'Link (https://…)', 'https://');
+      if (url === null) return;
+      if (!url.trim() || url.trim() === 'https://') exec('unlink');
+      else exec('createLink', /^(https?:|mailto:|tel:)/i.test(url.trim()) ? url.trim() : 'https://' + url.trim());
+    };
+    const picker = el('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp,image/gif', hidden: true });
+
+    const tools = [
+      ['B', 'bold', () => exec('bold'), ''],
+      ['I', 'italic', () => exec('italic'), 'i'],
+      ['H', 'heading', () => toggleBlock('h3'), ''],
+      ['h', 'subheading', () => toggleBlock('h4'), ''],
+      ['“', 'quote', () => toggleBlock('blockquote'), 'q'],
+      ['•', 'list', () => exec('insertUnorderedList'), ''],
+      ['|'],
+      [null, 'link', addLink, ''],
+      [null, 'image', () => picker.click(), ''],
+    ];
+    const bar = el('div', { className: 'pe-tools' });
+    bar.setAttribute('role', 'toolbar');
+    const icon = { link: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>', image: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>' };
+    tools.forEach(([label, name, run, cls]) => {
+      if (label === '|') { bar.append(el('span', { className: 'sep' })); return; }
+      const button = el('button', { type: 'button', className: cls || '' });
+      if (label) button.textContent = label; else button.innerHTML = icon[name];
+      button.title = (K.i18n.tools || {})[name] || name;
+      button.setAttribute('aria-label', button.title);
+      button.dataset.tool = name;
+      button.addEventListener('mousedown', (e) => e.preventDefault());
+      button.addEventListener('click', run);
+      bar.append(button);
+    });
+
+    const pressed = () => {
+      const block = blockOf();
+      $$('button[data-tool]', bar).forEach((b) => {
+        const on = { bold: () => document.queryCommandState('bold'), italic: () => document.queryCommandState('italic'),
+          heading: () => block === 'h3', subheading: () => block === 'h4', quote: () => block === 'blockquote', list: () => block === 'li' }[b.dataset.tool];
+        if (on) b.setAttribute('aria-pressed', on() ? 'true' : 'false');
+      });
+    };
+
+    function sync() {
+      const empty = !editor.textContent.trim() && !$('img', editor);
+      editor.classList.toggle('is-empty', empty);
+      postBody.value = empty ? '' : editor.innerHTML;
+      format.value = 'html';
+      if (keepDraft) saveDraft();
+    }
+    let draftTimer;
+    const saveDraft = () => {
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(() => store.set(draftKey, { title: titleInput.value, author: authorInput.value, html: postBody.value }), 400);
+    };
+
+    // pictures: shrunk here, uploaded at once, then placed where the caret was
+    async function upload(file) {
+      if (!/^image\//.test(file.type)) return;
+      const holder = el('figure');
+      const img = el('img', { className: 'is-loading', alt: '', src: URL.createObjectURL(file) });
+      holder.append(img);
+      const range = getSelection().rangeCount && editor.contains(getSelection().anchorNode) ? getSelection().getRangeAt(0) : null;
+      const block = range && (range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement).closest('.pe-body > *');
+      if (block) block.after(holder); else editor.append(holder);
+      if (!holder.nextElementSibling) holder.after(el('p', {}, [el('br')]));
+      toast(t('uploading'));
+      const job = (async () => {
+        const body = new FormData();
+        body.append('image', await shrinkImage(file, 1600));
+        const response = await fetchWithRetry(() => fetch(postBody.dataset.imageUpload, { method: 'POST', headers: jsonHeaders(), body, credentials: 'same-origin' }));
+        const data = await response.json().catch(() => ({}));
+        if (response.status !== 201) throw new Error((data.errors && Object.values(data.errors)[0][0]) || (response.status === 413 ? t('tooBig') : t('error')));
+        URL.revokeObjectURL(img.src);
+        img.src = data.src;
+        img.classList.remove('is-loading');
+        img.removeAttribute('class');
+      })().catch((error) => { holder.remove(); toast(error.message || t('error')); })
+        .finally(() => { sync(); const i = pendingImages.indexOf(job); if (i >= 0) pendingImages.splice(i, 1); });
+      pendingImages.push(job);
+    }
+    picker.addEventListener('change', () => { Array.from(picker.files || []).forEach(upload); picker.value = ''; });
+
+    // pasted text comes in as plain paragraphs: formatting from Word or other sites would only bring clutter
+    editor.addEventListener('paste', (e) => {
+      const files = Array.from((e.clipboardData && e.clipboardData.files) || []).filter((f) => /^image\//.test(f.type));
+      e.preventDefault();
+      if (files.length) { files.forEach(upload); return; }
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      if (text) document.execCommand('insertHTML', false, /\n/.test(text) ? textToHtml(text) : escapeHtml(text));
+      sync();
+    });
+    editor.addEventListener('drop', (e) => {
+      const files = Array.from((e.dataTransfer && e.dataTransfer.files) || []).filter((f) => /^image\//.test(f.type));
+      if (files.length) { e.preventDefault(); files.forEach(upload); }
+    });
+    editor.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); addLink(); }
+    });
+    editor.addEventListener('input', sync);
+    ['keyup', 'mouseup', 'focus'].forEach((type) => editor.addEventListener(type, pressed));
+    document.addEventListener('selectionchange', () => { if (document.activeElement === editor) pressed(); });
+    [titleInput, authorInput].forEach((input) => input && input.addEventListener('input', () => keepDraft && saveDraft()));
+    // the title grows with its text; its Enter goes on to the story instead of a new line
+    const growTitle = () => { titleInput.style.height = 'auto'; titleInput.style.height = titleInput.scrollHeight + 'px'; };
+    titleInput.addEventListener('input', growTitle);
+    titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); editor.focus(); } });
+    // the toolbar sticks just below the site header, whatever its height on this screen
+    const header = $('.site-header');
+    const placeBar = () => bar.style.setProperty('--pe-top', (header ? header.offsetHeight : 0) + 'px');
+    addEventListener('resize', placeBar);
+
+    try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (e) { /* old browsers */ }
+    postBody.hidden = true;
+    postBody.removeAttribute('required');
+    postBody.after(bar, editor, picker);
+    form.addEventListener('submit', sync, true); // before the resilient submit reads the form
+    sync();
+    growTitle();
+    placeBar();
+  }
+  if ($('[data-post-published]')) store.set('kalta-post-draft', null);
+
   /* ---------- Long forms: stay on the page, retry on flaky connections, never lose what was typed ---------- */
   function setFormError(form, message) {
     let box = $('[data-form-error]', form);

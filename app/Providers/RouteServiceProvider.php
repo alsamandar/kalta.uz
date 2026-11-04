@@ -32,6 +32,7 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('create', fn (Request $request) => Limit::perMinute(20)->by('create|' . $request->ip()));
         RateLimiter::for('qr', fn (Request $request) => Limit::perMinute(90)->by('qr|' . $request->ip()));
         RateLimiter::for('invite', fn (Request $request) => Limit::perMinute(30)->by('invite|' . $request->ip()));
+        RateLimiter::for('uploads', fn (Request $request) => Limit::perMinute(40)->by('uploads|' . $request->ip()));
         RateLimiter::for('manage', fn (Request $request) => Limit::perMinute(120)->by('manage|' . $request->ip()));
 
         $this->routes(function () {

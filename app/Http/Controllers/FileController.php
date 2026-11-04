@@ -19,13 +19,13 @@ class FileController extends Controller
         return Submission::once($request, function () use ($request) {
             $upload = $request->file('file');
 
-            // Files are only ever served as a download through KaltaController@show,
-            // never executed or rendered, so the stored name is neutral.
-            $path = $upload->storeAs('uploads', $upload->hashName() . '.bin', 'public');
+            // Files are private and only ever served as a download through KaltaController@show, never executed
+            // or rendered, so they sit outside the web root under a neutral name.
+            $path = $upload->storeAs('uploads', $upload->hashName() . '.bin', File::DISK);
 
             $file = File::create(['path' => $path, 'name' => basename($upload->getClientOriginalName())]);
             $kalta = $file->kalta()->create([
-                'url' => randomString(),
+                'url' => randomString(8), // long enough that nobody finds a file by trying addresses
                 'user_id' => Auth::id() ?? 1,
                 'ip' => $request->ip(),
                 'name' => $file->name,

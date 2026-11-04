@@ -41,6 +41,7 @@ class SubmissionTest extends TestCase
 
     public function test_every_create_endpoint_is_protected(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
         $cases = [
             ['/kaltas/make', ['url' => 'https://example.com'], Short::class],

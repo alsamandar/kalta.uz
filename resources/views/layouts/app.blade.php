@@ -61,6 +61,11 @@
             'expired' => __('Your session expired. Reload the page and try again.'),
             'retrying' => __('Connection problem. Trying again…'),
             'stillOffline' => __('We could not reach the server. Your details are still on this page: check your connection and tap the button again.'),
+            'linkPrompt' => __('Link address (empty to remove the link)'),
+            'tools' => [
+                'bold' => __('Bold'), 'italic' => __('Italic'), 'heading' => __('Heading'), 'subheading' => __('Subheading'),
+                'quote' => __('Quote'), 'list' => __('List'), 'link' => __('Link'), 'image' => __('Add a picture'),
+            ],
         ],
     ];
 
@@ -95,8 +100,8 @@
     <meta property="og:description" content="{{ $metaDescription }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:image" content="{{ $ogImage }}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
+    <meta property="og:image:width" content="{{ $imageSize[0] ?? 1200 }}">
+    <meta property="og:image:height" content="{{ $imageSize[1] ?? 630 }}">
     <meta property="og:locale" content="{{ config('kalta.og_locales.' . $locale) }}">
     @foreach (config('kalta.og_locales') as $code => $ogLocale)
         @if ($code !== $locale)

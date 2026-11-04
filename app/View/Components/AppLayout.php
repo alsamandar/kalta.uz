@@ -27,6 +27,7 @@ class AppLayout extends Component
      * @param  bool  $trail  emit BreadcrumbList data (Home > this page) to match the visible breadcrumbs
      * @param  array<int, array{name: string, url: string}>  $breadcrumbs  extra steps between Home and this page
      * @param  array<int, array<string, mixed>>  $jsonld  extra schema.org blocks
+     * @param  array{0: int, 1: int}|null  $imageSize  real size of $image when it is not a 1200×630 card
      */
     public function __construct(
         public ?string $title = null,
@@ -43,6 +44,7 @@ class AppLayout extends Component
         public bool $trail = false,
         public array $jsonld = [],
         public bool $indexable = false,
+        public ?array $imageSize = null,
     ) {
         $brand = config('kalta.name');
 

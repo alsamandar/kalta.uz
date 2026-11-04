@@ -8,6 +8,7 @@
         ['qr', __('QR code generator'), __('Create a QR code for a link, text or phone number and download it as PNG or SVG.'), __('Make a QR code'), lroute('qr.create')],
         ['code', __('Text & code snippets'), __('Paste text or code, choose when it expires and share it with a short link. Syntax highlighting included.'), __('Share text'), lroute('codes.create')],
         ['user', __('Link in bio'), __('Put all your links — Instagram, Telegram, X, GitHub — on one beautiful page with a single address.'), __('Create my page'), lroute('bio.create')],
+        ['file-text', __('Write a post'), __('Publish an article with pictures in a minute, like Telegraph. No account needed; links show a preview in chats.'), __('Write a post'), lroute('posts.create')],
         ['heart', __('Wedding invitation'), __('Design an online invitation, send every guest a personal link and see who is coming.'), __('Create an invitation'), lroute('invitations.create')],
     ];
 

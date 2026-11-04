@@ -5,6 +5,7 @@
         'file' => ['upload', __('Your file is ready to share'), __('Anyone with this link can download the file.')],
         'bio' => ['user', __('Your link-in-bio page is ready'), __('Put this link in your Instagram or Telegram profile.')],
         'code' => ['code', __('Your text is ready to share'), __('Anyone with this link can read it.')],
+        'post' => ['file-text', __('Your post is published'), __('Share it anywhere — it shows a preview with the title and picture.')],
         default => ['link', __('Your link is ready'), __('Share it anywhere.')],
     };
     $typeLabel = match ($kalta->type) {
@@ -13,6 +14,7 @@
         'bio' => __('Link in bio'),
         'code' => __('Text & code'),
         'invitation' => __('Wedding invitation'),
+        'post' => __('Post'),
         default => __('Link'),
     };
 @endphp
@@ -43,6 +45,8 @@
                         <div><dt>{{ __('File') }}</dt><dd>{{ $target->name }}</dd></div>
                     @elseif ($target instanceof \App\Models\Bio)
                         <div><dt>{{ __('Name') }}</dt><dd>{{ $target->title }}</dd></div>
+                    @elseif ($target instanceof \App\Models\Post)
+                        <div><dt>{{ __('Title') }}</dt><dd>{{ $target->title }}</dd></div>
                     @elseif ($target instanceof \App\Models\Code)
                         <div><dt>{{ __('Language') }}</dt><dd>{{ $target->prog_lang->value === 'txt' ? __('Plain text') : $target->prog_lang->label() }}</dd></div>
                         <div><dt>{{ __('Expires') }}</dt><dd>{{ $target->expiration ? $target->expiration->isoFormat('LLL') : __('Never') }}</dd></div>

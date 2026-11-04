@@ -4,20 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Models\Bio;
 use App\Models\Kalta;
+use App\Models\Post;
 
 class SeoController extends Controller
 {
-    /** Only link-in-bio pages are meant to appear in search results; every other page is noindex. */
+    /**
+     * Only link-in-bio pages and posts are meant to appear in search results; every other page is noindex.
+     * Files, text snippets and invitations are private: never listed, and sent with noindex.
+     */
     public function sitemap()
     {
         $xml = ['<?xml version="1.0" encoding="UTF-8"?>',
-            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'];
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">'];
 
         Kalta::query()->where('kaltaable_type', Bio::class)->orderBy('id')->chunk(500, function ($kaltas) use (&$xml) {
             foreach ($kaltas as $kalta) {
                 $xml[] = '<url><loc>' . e($kalta->short_url) . '</loc><lastmod>' . ($kalta->updated_at ?? now())->toDateString() . '</lastmod></url>';
             }
         });
+
+        Kalta::query()->where('kaltaable_type', Post::class)
+            ->whereIn('kaltaable_id', Post::query()->select('id')->where('words', '>=', Post::MIN_WORDS_TO_INDEX))
+            ->with('kaltaable:id,updated_at,image')->orderBy('id')
+            ->chunk(500, function ($kaltas) use (&$xml) {
+                foreach ($kaltas as $kalta) {
+                    $post = $kalta->kaltaable;
+                    $image = $post->image ? '<image:image><image:loc>' . e(asset($post->image)) . '</image:loc></image:image>' : '';
+                    $xml[] = '<url><loc>' . e($kalta->short_url) . '</loc><lastmod>' . $post->updated_at->toDateString() . '</lastmod>' . $image . '</url>';
+                }
+            });
 
         $xml[] = '</urlset>';
 
@@ -43,6 +58,9 @@ class SeoController extends Controller
                 'Disallow: /i/',
                 'Disallow: /invitations/',
                 'Disallow: /lang/',
+                'Disallow: /storage/',
+                'Disallow: /posts/',
+                'Allow: /posts/*/preview.jpg',
                 'Disallow: /created/',
                 'Disallow: /*/created/',
                 'Allow: /',

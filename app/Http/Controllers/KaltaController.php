@@ -7,6 +7,7 @@ use App\Models\Code;
 use App\Models\File;
 use App\Models\Invitation;
 use App\Models\Kalta;
+use App\Models\Post;
 use App\Models\Short;
 use App\Support\Ics;
 use App\Support\PreviewImage;
@@ -35,14 +36,23 @@ class KaltaController extends Controller
         }
 
         if ($target instanceof File) {
-            $disk = Storage::disk('public');
-            abort_unless($disk->exists($target->path), 404);
+            $disk = $target->disk();
+            abort_if($disk === null, 404);
 
-            return $disk->download($target->path, $target->name, ['X-Robots-Tag' => 'noindex']);
+            // private: never indexed, archived or kept in shared caches, and the address is not passed on
+            return $disk->download($target->path, $target->name, [
+                'X-Robots-Tag' => 'noindex, nofollow, noarchive',
+                'Cache-Control' => 'private, no-store',
+                'Referrer-Policy' => 'no-referrer',
+            ]);
         }
 
         if ($target instanceof Bio) {
             return view('bio.show', ['bio' => $target, 'kalta' => $kalta]);
+        }
+
+        if ($target instanceof Post) {
+            return view('posts.show', ['post' => $target, 'kalta' => $kalta, 'canEdit' => $target->canEdit($request)]);
         }
 
         if ($target instanceof Code) {
@@ -104,13 +114,19 @@ class KaltaController extends Controller
         $target = $kalta->kaltaable;
 
         if ($target instanceof File) {
-            Storage::disk('public')->delete($target->path);
+            $target->deleteStored();
         } elseif ($target instanceof Bio && $target->avatar_icon) {
             if (str_starts_with($target->avatar_icon, 'media/')) {
                 Storage::disk('public')->delete(substr($target->avatar_icon, strlen('media/')));
             } else {
                 Files::delete(public_path($target->avatar_icon)); // older uploads live in public/images
             }
+        }
+
+        if ($target instanceof Post) {
+            PostController::forget($target);
+
+            return back()->with('success', __('Deleted.'));
         }
 
         if ($target instanceof Invitation) {

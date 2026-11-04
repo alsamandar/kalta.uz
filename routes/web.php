@@ -8,6 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\KaltaController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QrController;
 use App\Http\Controllers\SeoController;
@@ -39,6 +40,7 @@ foreach (config('kalta.locales') as $locale => $label) {
             Route::get('codes/create', [CodeController::class, 'create'])->name('codes.create');
             Route::get('bio/create', [BioController::class, 'create'])->name('bio.create');
             Route::get('invitations/create', [InvitationController::class, 'create'])->name('invitations.create');
+            Route::get('posts/create', [PostController::class, 'create'])->name('posts.create');
             Route::get('created/{kalta}', [KaltaController::class, 'created'])->middleware('noindex')->name('created');
 
             Route::middleware('throttle:create')->group(function () {
@@ -47,6 +49,7 @@ foreach (config('kalta.locales') as $locale => $label) {
                 Route::post('codes', [CodeController::class, 'store'])->name('codes.store');
                 Route::post('bio', [BioController::class, 'store'])->name('bio.store');
                 Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
+                Route::post('posts', [PostController::class, 'store'])->name('posts.store');
             });
 
             Route::post('qr', [QrController::class, 'generate'])->middleware('throttle:qr')->name('qr.generate');
@@ -82,6 +85,17 @@ Route::middleware('noindex')->group(function () {
     });
 });
 
+// Posts: editing is for the author (their account, or the browser they wrote it in); see Post::canEdit
+Route::middleware('noindex')->group(function () {
+    Route::get('posts/{post}/edit', [PostController::class, 'edit'])->whereNumber('post')->name('posts.edit');
+    Route::middleware('throttle:manage')->group(function () {
+        Route::patch('posts/{post}', [PostController::class, 'update'])->whereNumber('post')->name('posts.update');
+        Route::delete('posts/{post}', [PostController::class, 'destroy'])->whereNumber('post')->name('posts.destroy');
+    });
+    Route::post('posts/images', [PostController::class, 'image'])->middleware('throttle:uploads')->name('posts.images');
+});
+Route::get('posts/{post}/preview.jpg', [PostController::class, 'preview'])->whereNumber('post')->name('posts.preview');
+
 Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -110,7 +124,7 @@ Route::get('robots.txt', [SeoController::class, 'robots'])->name('robots');
 
 // Uploaded avatars and covers
 Route::get('media/{folder}/{file}', [MediaController::class, 'show'])
-    ->where(['folder' => 'avatars|covers', 'file' => '[A-Za-z0-9_-]+\.[A-Za-z]{3,4}'])
+    ->where(['folder' => 'avatars|covers|posts', 'file' => '[A-Za-z0-9_-]+\.[A-Za-z]{3,4}'])
     ->name('media');
 
 // Old numeric bio addresses

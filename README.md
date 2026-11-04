@@ -5,10 +5,11 @@ Free tools for the web, in Uzbek, Russian and English:
 | Tool | Page | What it does |
 |------|------|--------------|
 | Link shortener | `/` | Short link + QR code, instant (no page reload), recent links kept in the browser |
-| File sharing | `/files/create` | Upload up to 20 MB, get a download link |
+| File sharing | `/files/create` | Upload up to 20 MB, get a private download link |
 | QR codes | `/qr` | Live preview, PNG / SVG download |
 | Text & code | `/codes/create` | Unlisted snippets with syntax highlighting and expiry |
 | Link in bio | `/bio/create` | One page for all social links, 5 colour themes, live preview |
+| Posts | `/posts/create` | Telegraph-style articles with pictures, readable addresses, link previews, SEO |
 | Wedding invitations | `/invitations/create` | Invitation page, personal guest links, RSVP, e-mail / Telegram / WhatsApp sending |
 | My links | `/dashboard` | Optional account: see and delete your links |
 
@@ -56,10 +57,13 @@ More settings (upload limit, blocked file types, reserved short codes, Cloudflar
    and both are now generated (correct host, every page, every language). The old assets are unused too:
    `public/css/{style,normalize,bio,nopaste}.css`, `public/js/{main,nopaste}.js`, `public/img/{upload,qr_code,link_in_bio,transparent,search}.png`,
    `public/img/site.webmanifest`.
-2. Run `php artisan migrate` once (adds invitations, a click counter, longer text snippets and long links, and the
-   sent/opened tracking and own message for wedding invitations: four migrations in all).
-3. `storage/` and `bootstrap/cache/` must be writable by the web server. Uploads (files, avatars, covers) are stored in
-   `storage/app/public` and served by the app, so `public/` needs no write access and no `storage:link`.
+2. Run `php artisan migrate` once (adds invitations, a click counter, longer text snippets and long links, the
+   sent/opened tracking and own message for wedding invitations, and posts: five migrations in all).
+3. `storage/` and `bootstrap/cache/` must be writable by the web server. Avatars, covers and post pictures are stored
+   in `storage/app/public` and served by the app, so `public/` needs no write access and no `storage:link`.
+   Shared files are private: new ones go to `storage/app/uploads`, outside the web root. Run
+   `php artisan files:make-private` once (as the web server's user) to move older uploads there too; until then they
+   still download from the old place. If the server has a `public/storage` symlink, it can be removed afterwards.
 4. `public/.user.ini` raises PHP's upload limits to 25 MB (works with PHP-FPM; with Apache add the same to `php.ini`).
    The upload page shows the limit that is really in effect.
 5. Behind Cloudflare the app reads the visitor's IP from `CF-Connecting-IP` (only when the request really comes from
@@ -94,8 +98,20 @@ lang/                  uz.json, ru.json (+ validation/auth/passwords messages)
   (`data-resilient`) submit with `fetch` so a network failure never wipes what was typed: they check the connection
   first (`public/up.txt`), retry on a fresh connection and refresh an expired CSRF token. File inputs marked
   `data-shrink` are downscaled in the browser before upload (a 4 MB phone photo becomes ~400 KB).
-* Only link-in-bio pages are indexable (`<x-app-layout :indexable="true">`, needs `SEO_INDEX=true`) and only they are
-  listed in `sitemap.xml`; every other page, file download and redirect is `noindex`.
+* Only link-in-bio pages and posts of at least `Post::MIN_WORDS_TO_INDEX` words are indexable
+  (`<x-app-layout :indexable="true">`, needs `SEO_INDEX=true`) and only they are listed in `sitemap.xml`; every other
+  page, redirect and file download is `noindex`. Files are never listed, are sent with
+  `noindex, nofollow, noarchive`, `Cache-Control: private, no-store` and `Referrer-Policy: no-referrer`, and new ones
+  get 8-character codes, so only people who were given the link can open them.
+* **Posts** (`PostController`, `posts/edit` for both writing and editing, `posts/show`, `public/css/post.css`): no
+  account needed. The address is the title transliterated plus the date (`my-story-11-04`, then `-2`, `-3`). The body
+  is rebuilt by `App\Support\PostHtml` from a short list of tags (no scripts, styles, event handlers or foreign
+  pictures; links get `rel="nofollow ugc"`). The browser that wrote a post keeps its edit token in an encrypted cookie
+  (`kalta_posts`), and a logged-in author can edit from anywhere and from the dashboard. Pictures are shrunk in the
+  browser, uploaded at once (`POST /posts/images`) and stored as JPEGs; the first one is the link preview, otherwise
+  `App\Support\PostPreview` draws a 1200×630 card. Each post page has `BlogPosting` JSON-LD and `article:*` tags.
+  The editor (in `app.js`) keeps a draft in `localStorage` until the post is published; without JavaScript the body
+  is a plain textarea (blank lines make paragraphs).
 * **Wedding invitations, the hosts' side** (`/invitations/{secret}/manage`; the secret in the address is the only key):
   the dashboard shows people coming and the sent → opened → replied progress, a searchable guest list with filters
   (not sent / waiting / coming / declined) and per guest Telegram, WhatsApp (straight to the chat when a phone number is

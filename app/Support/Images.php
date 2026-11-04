@@ -27,6 +27,12 @@ class Images
         return self::process($file, 'covers', $maxWidth, null, false);
     }
 
+    /** A picture inside a post, keeps its proportions. */
+    public static function post(UploadedFile $file, int $maxWidth = 1600): string
+    {
+        return self::process($file, 'posts', $maxWidth, null, false);
+    }
+
     private static function process(UploadedFile $file, string $folder, int $width, ?int $height, bool $square): string
     {
         $disk = Storage::disk('public');
