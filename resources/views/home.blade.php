@@ -73,8 +73,6 @@
                 </div>
                 <ul data-history-list></ul>
             </section>
-
-            <p class="hero-note">{{ __('By using Kalta.uz you agree not to share spam, phishing or illegal content.') }}</p>
         </div>
     </section>
 

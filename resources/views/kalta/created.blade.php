@@ -1,12 +1,12 @@
 @php
     $short = $kalta->short_url;
-    [$icon, $heading, $lead] = match ($kalta->type) {
-        'short' => ['link', __('Your short link is ready'), __('Share it anywhere — it opens the original page.')],
-        'file' => ['upload', __('Your file is ready to share'), __('Anyone with this link can download the file.')],
-        'bio' => ['user', __('Your link-in-bio page is ready'), __('Put this link in your Instagram or Telegram profile.')],
-        'code' => ['code', __('Your text is ready to share'), __('Anyone with this link can read it.')],
-        'post' => ['file-text', __('Your post is published'), __('Share it anywhere — it shows a preview with the title and picture.')],
-        default => ['link', __('Your link is ready'), __('Share it anywhere.')],
+    [$heading, $lead] = match ($kalta->type) {
+        'short' => [__('Your short link is ready'), __('Share it anywhere — it opens the original page.')],
+        'file' => [__('Your file is ready to share'), __('Anyone with this link can download the file.')],
+        'bio' => [__('Your link-in-bio page is ready'), __('Put this link in your Instagram or Telegram profile.')],
+        'code' => [__('Your text is ready to share'), __('Anyone with this link can read it.')],
+        'post' => [__('Your post is published'), __('Share it anywhere — it shows a preview with the title and picture.')],
+        default => [__('Your link is ready'), __('Share it anywhere.')],
     };
     $typeLabel = match ($kalta->type) {
         'short' => __('Short link'),
@@ -19,7 +19,7 @@
     };
 @endphp
 <x-app-layout :title="$heading" :noindex="true">
-    <x-page-hero :title="$heading" :lead="$lead" :icon="$icon" />
+    <x-page-hero :title="$heading" :lead="$lead" />
 
     <div class="container narrow page-body">
         <div class="card created-card" data-copy-scope data-qr-scope data-qr-name="kalta-{{ $kalta->url }}">

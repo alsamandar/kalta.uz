@@ -2,7 +2,7 @@
     $icons = ['short' => 'link', 'file' => 'upload', 'bio' => 'user', 'code' => 'code', 'invitation' => 'heart', 'post' => 'file-text'];
 @endphp
 <x-app-layout :title="__('My links')" :noindex="true" :ads="false">
-    <x-page-hero :title="__('My links')" :lead="__('Links, files and pages you created while logged in.')" icon="user" />
+    <x-page-hero :title="__('My links')" :lead="__('Links, files and pages you created while logged in.')" />
 
     <div class="container page-body">
         <div class="toolbar">

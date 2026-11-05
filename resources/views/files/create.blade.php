@@ -4,7 +4,7 @@
     :alternates="true"
     :trail="true">
 
-    <x-page-hero :title="__('Share a file')" :lead="__('Drop a file here and get a short link you can send to anyone.')" icon="upload" />
+    <x-page-hero :title="__('Share a file')" :lead="__('Drop a file here and get a short link you can send to anyone.')" />
 
     <div class="container narrow page-body">
         <form class="card" method="POST" action="{{ lroute('files.store') }}" enctype="multipart/form-data" data-upload data-max="{{ upload_limit_kb() * 1024 }}">

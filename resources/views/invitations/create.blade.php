@@ -6,7 +6,7 @@
 
     @push('scripts')<script src="{{ asset_v('js/manage.js') }}" defer></script>@endpush
 
-    <x-page-hero :title="__('Wedding invitation')" :lead="__('Create a beautiful invitation page, send each guest a personal link and collect their replies.')" icon="heart" />
+    <x-page-hero :title="__('Wedding invitation')" :lead="__('Create a beautiful invitation page, send each guest a personal link and collect their replies.')" />
 
     <div class="container narrow page-body">
         <form class="card" method="POST" action="{{ lroute('invitations.store') }}" enctype="multipart/form-data" data-resilient>

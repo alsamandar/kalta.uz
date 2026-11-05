@@ -14,7 +14,7 @@
     :alternates="true"
     :trail="true">
 
-    <x-page-hero :title="__('Share text or code')" :lead="__('Paste anything — notes, a config file or a code snippet — and get a short link to it.')" icon="code" />
+    <x-page-hero :title="__('Share text or code')" :lead="__('Paste anything — notes, a config file or a code snippet — and get a short link to it.')" />
 
     <div class="container narrow page-body">
         <form class="card" method="POST" action="{{ lroute('codes.store') }}" data-resilient>

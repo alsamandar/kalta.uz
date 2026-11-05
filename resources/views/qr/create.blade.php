@@ -4,7 +4,7 @@
     :alternates="true"
     :trail="true">
 
-    <x-page-hero :title="__('QR code generator')" :lead="__('Type a link or any text and get a QR code you can download as PNG or SVG.')" icon="qr" />
+    <x-page-hero :title="__('QR code generator')" :lead="__('Type a link or any text and get a QR code you can download as PNG or SVG.')" />
 
     <div class="container page-body">
         <div class="qr-layout">

@@ -1,5 +1,5 @@
 <x-app-layout :title="__('Profile')" :noindex="true" :ads="false">
-    <x-page-hero :title="__('Profile')" icon="user" />
+    <x-page-hero :title="__('Profile')" />
 
     <div class="container narrow page-body">
         <div class="card">@include('profile.partials.update-profile-information-form')</div>

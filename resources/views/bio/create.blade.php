@@ -19,7 +19,7 @@
     :alternates="true"
     :trail="true">
 
-    <x-page-hero :title="__('Link in bio')" :lead="__('One page for all your links. Perfect for your Instagram or Telegram profile.')" icon="user" />
+    <x-page-hero :title="__('Link in bio')" :lead="__('One page for all your links. Perfect for your Instagram or Telegram profile.')" />
 
     <div class="container page-body">
         <form class="bio-form-layout" method="POST" action="{{ lroute('bio.store') }}" enctype="multipart/form-data" data-bio-form data-resilient>

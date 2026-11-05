@@ -6,7 +6,7 @@
 
 /* the field with its arrow inside, as on the download sites */
 .home-hero .shortener { margin: 26px auto 0; }
-.home-hero .shortener-field { flex-wrap: nowrap; gap: 6px; padding: 6px 6px 6px 18px; border-width: 2px; border-color: var(--brand); border-radius: 18px; }
+.home-hero .shortener-field { gap: 6px; padding: 6px 6px 6px 18px; border-width: 2px; border-color: var(--brand); border-radius: 18px; }
 .home-hero .shortener-field input { padding: 14px 4px; font-size: 1.08rem; }
 .shortener-go {
   display: grid; flex: none; place-items: center; width: 56px; height: 52px; padding: 0;
@@ -19,13 +19,12 @@
 .shortener-go[aria-busy="true"] .icon { animation: go-wait 0.8s ease-in-out infinite alternate; }
 @keyframes go-wait { from { transform: translateX(-3px); opacity: 0.55; } to { transform: translateX(3px); opacity: 1; } }
 @media (max-width: 560px) {
-  .home-hero .shortener-field { flex-wrap: nowrap; padding: 5px 5px 5px 14px; }
+  .home-hero .shortener-field { padding: 5px 5px 5px 14px; }
   .home-hero .shortener-field input { flex: 1; padding: 12px 2px; font-size: 1rem; }
   .shortener-go { width: 50px; height: 48px; }
 }
 
 .home-hero .field-error, .home-hero .result, .home-hero .history { text-align: left; }
-.home-hero .hero-note { font-size: 0.82rem; }
 
 /* the questions under the field */
 .home-more { padding: clamp(20px, 4vw, 36px) 0 clamp(28px, 5vw, 48px); }
